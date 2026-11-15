@@ -91,3 +91,6 @@ fixtures/           one recorded incident: webhook, prompt, transcript, patches,
 - The race in `double-submit` is reachable because the store waits a few milliseconds before each query to behave like a database over a socket; PGlite itself answers inside the same tick.
 - No pull request, no dashboard, no CI and no sandbox yet: second evening.
 - The human still reads the pull request title. Auto-merge is behind a flag and off by default, and will stay so.
+
+
+Live: https://nightshift-francesco-saponaro.netlify.app
