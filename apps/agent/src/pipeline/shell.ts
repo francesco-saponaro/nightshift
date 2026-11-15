@@ -16,11 +16,15 @@ export interface ShellOptions {
   onOutput?: (chunk: string) => void;
 }
 
-/** Runs one command through the shell in a folder and returns everything it said; it never throws on a non-zero exit. */
+/**
+ * Runs one command through the shell in a folder and returns everything it said; it never throws on a non-zero exit.
+ * A plain shell, not a login shell: a login shell re-reads the profile, which on some systems resets PATH and loses
+ * the node and pnpm the parent process was started with.
+ */
 export function sh(command: string, cwd: string, options: ShellOptions = {}): Promise<ShellResult> {
   const started = Date.now();
   return new Promise((resolve, reject) => {
-    const child = spawn("bash", ["-lc", command], {
+    const child = spawn("bash", ["-c", command], {
       cwd,
       env: { ...process.env, ...options.env },
       stdio: ["ignore", "pipe", "pipe"],

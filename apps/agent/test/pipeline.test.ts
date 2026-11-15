@@ -42,6 +42,10 @@ beforeAll(async () => {
     secrets: ["fixture-secret"],
     commandTimeoutMs: 180_000,
   });
+  if (outcome.status !== "fixed") {
+    // Say what happened, so a failure in another environment can be read from the test output.
+    for (const e of outcome.events) console.error(`[${e.step}] ${e.status}: ${e.summary}${e.status === "failed" ? `\n${JSON.stringify(e.data, null, 2)}` : ""}`);
+  }
 }, 300_000);
 
 afterAll(async () => {
