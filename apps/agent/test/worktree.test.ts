@@ -75,3 +75,11 @@ describe("diffOf", () => {
     await removeWorktree(root, wt.dir);
   });
 });
+
+describe("sh", () => {
+  it("strips colour codes and tells the command it has no terminal", async () => {
+    const result = await sh('printf "\\033[1m\\033[31m2 failed\\033[39m\\n"; echo "color=${FORCE_COLOR}/${NO_COLOR}"', root);
+    expect(result.output).toBe("2 failed\ncolor=0/1\n");
+    expect(result.code).toBe(0);
+  });
+});

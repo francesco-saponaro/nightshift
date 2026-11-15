@@ -9,6 +9,12 @@ export interface ShellResult {
   durationMs: number;
 }
 
+// Colour codes from a test runner that thinks it is on a terminal (CI sets FORCE_COLOR) would otherwise land in the
+// record and defeat any check that reads the output.
+// eslint-disable-next-line no-control-regex -- the escape character is the point
+const ANSI = /\u001b\[[0-9;]*[A-Za-z]/g;
+export const stripAnsi = (text: string) => text.replace(ANSI, "");
+
 export interface ShellOptions {
   env?: Record<string, string | undefined>;
   timeoutMs?: number;
@@ -26,7 +32,7 @@ export function sh(command: string, cwd: string, options: ShellOptions = {}): Pr
   return new Promise((resolve, reject) => {
     const child = spawn("bash", ["-c", command], {
       cwd,
-      env: { ...process.env, ...options.env },
+      env: { ...process.env, NO_COLOR: "1", FORCE_COLOR: "0", ...options.env },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";
@@ -34,13 +40,13 @@ export function sh(command: string, cwd: string, options: ShellOptions = {}): Pr
     let output = "";
     const timer = options.timeoutMs ? setTimeout(() => child.kill("SIGKILL"), options.timeoutMs) : null;
     child.stdout.on("data", (chunk: Buffer) => {
-      const text = chunk.toString();
+      const text = stripAnsi(chunk.toString());
       stdout += text;
       output += text;
       options.onOutput?.(text);
     });
     child.stderr.on("data", (chunk: Buffer) => {
-      const text = chunk.toString();
+      const text = stripAnsi(chunk.toString());
       stderr += text;
       output += text;
       options.onOutput?.(text);
