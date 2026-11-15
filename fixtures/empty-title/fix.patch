@@ -1,0 +1,47 @@
+diff --git a/apps/sample/src/server/app.ts b/apps/sample/src/server/app.ts
+index 949f304..b942364 100644
+--- a/apps/sample/src/server/app.ts
++++ b/apps/sample/src/server/app.ts
+@@ -25,16 +25,12 @@ const dueOn = z
+   .refine((s) => !Number.isNaN(Date.parse(`${s}T00:00:00Z`)), "a real calendar date");
+ 
+ const strictTitle = z.string().trim().min(1, "the title cannot be empty").max(200, "200 characters at most");
+-// With the empty-title bug on, a blank title is let through and the database refuses it instead.
+-const looseTitle = z.string().max(200);
+ 
+-function newTodoSchema(bugs: ReadonlySet<string>) {
+-  return z.strictObject({
+-    title: bugs.has("empty-title") ? looseTitle : strictTitle,
+-    dueOn: dueOn.nullable().optional(),
+-    clientKey: z.string().uuid().optional(),
+-  });
+-}
++const newTodoSchema = z.strictObject({
++  title: strictTitle,
++  dueOn: dueOn.nullable().optional(),
++  clientKey: z.string().uuid().optional(),
++});
+ 
+ const patchSchema = z
+   .strictObject({
+@@ -88,7 +84,7 @@ export async function buildApp(options: SampleAppOptions = {}): Promise<SampleAp
+   });
+ 
+   app.post("/api/todos", async (request, reply) => {
+-    const input = newTodoSchema(bugs).parse(request.body);
++    const input = newTodoSchema.parse(request.body);
+     const { todo, created } = await store.insert(input, bugs);
+     return reply.status(created ? 201 : 200).send(present(todo));
+   });
+diff --git a/apps/sample/src/server/flags.ts b/apps/sample/src/server/flags.ts
+index 057568e..7c2d5ad 100644
+--- a/apps/sample/src/server/flags.ts
++++ b/apps/sample/src/server/flags.ts
+@@ -21,6 +21,7 @@ export const SEEDED_BUGS: readonly SeededBug[] = [
+     symptom: "An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400.",
+     file: "src/server/app.ts",
+     trigger: "POST /api/todos with { title: \"\" }",
++    fixedBy: "inc-f42f2815",
+   },
+   {
+     name: "date-off-by-one",

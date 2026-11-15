@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "../..",
+    "outDir": "dist",
+    "noEmit": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@nightshift/skills": ["../../packages/skills/src/index.ts"],
+      "@nightshift/sample/flags": ["../sample/src/server/flags.ts"]
+    }
+  },
+  "include": ["src", "test", "vitest.config.ts"]
+}

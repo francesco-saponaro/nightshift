@@ -1,0 +1,33 @@
+diff --git a/apps/sample/test/incident-inc-f42f2815.test.ts b/apps/sample/test/incident-inc-f42f2815.test.ts
+new file mode 100644
+index 0000000..7835b55
+--- /dev/null
++++ b/apps/sample/test/incident-inc-f42f2815.test.ts
+@@ -0,0 +1,27 @@
++import { afterEach, describe, expect, it } from "vitest";
++import { buildApp, type SampleApp } from "../src/server/app.js";
++
++// Incident inc-f42f2815, Sentry, 2026-11-15 22:27 UTC: POST /api/todos with { title: "" } answered 500
++// ("new row for relation todos violates check constraint todos_title_not_blank") while SAMPLE_BUGS=empty-title.
++// A blank title must be refused at the edge with a 400 that names the title.
++
++let app: SampleApp;
++afterEach(async () => {
++  await app?.close();
++});
++
++describe("incident inc-f42f2815: an empty title on POST /api/todos", () => {
++  it("is refused with a 400 that names the title, not a 500 from the database", async () => {
++    app = await buildApp({ bugs: new Set(["empty-title"]), now: () => new Date("2026-11-15T22:27:07.773Z") });
++    const res = await app.inject({ method: "POST", url: "/api/todos", payload: { title: "", dueOn: "2026-11-16" } });
++    expect(res.statusCode).toBe(400);
++    expect(res.json()).toMatchObject({ error: "validation" });
++    expect(JSON.stringify(res.json().issues)).toContain("title");
++  });
++
++  it("treats a title of spaces the same way", async () => {
++    app = await buildApp({ bugs: new Set(["empty-title"]) });
++    const res = await app.inject({ method: "POST", url: "/api/todos", payload: { title: "   " } });
++    expect(res.statusCode).toBe(400);
++  });
++});

@@ -1,0 +1,32 @@
+{
+  "name": "@nightshift/agent",
+  "version": "0.1.0",
+  "description": "The Nightshift runner: webhooks in, an incident queue, and a worker that reproduces, fixes, verifies and reviews in an isolated checkout.",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "run-fixture": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.325",
+    "@electric-sql/pglite": "^0.5.16",
+    "@nightshift/sample": "workspace:*",
+    "@nightshift/skills": "workspace:*",
+    "fastify": "^5.12.8",
+    "pg": "^8.23.1",
+    "pg-boss": "^12.38.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.12"
+  }
+}

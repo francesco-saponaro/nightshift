@@ -1,0 +1,99 @@
+{
+  "action": "triggered",
+  "installation": {
+    "uuid": "sample-app"
+  },
+  "data": {
+    "event": {
+      "event_id": "f42f2815c42129e791b3686a57e0cc73",
+      "title": "new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"",
+      "message": "new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"",
+      "culprit": "POST /api/todos",
+      "level": "error",
+      "platform": "node",
+      "release": "sample@0.1.0",
+      "timestamp": "2026-11-15T22:27:07.773Z",
+      "environment": "production",
+      "tags": [
+        [
+          "environment",
+          "production"
+        ],
+        [
+          "release",
+          "sample@0.1.0"
+        ],
+        [
+          "sample.bugs",
+          "empty-title"
+        ],
+        [
+          "transaction",
+          "POST /api/todos"
+        ]
+      ],
+      "request": {
+        "method": "POST",
+        "url": "/api/todos",
+        "data": {
+          "title": "",
+          "dueOn": "2026-11-16"
+        }
+      },
+      "exception": {
+        "values": [
+          {
+            "type": "error",
+            "value": "new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"",
+            "stacktrace": {
+              "frames": [
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js",
+                  "function": "<anonymous>",
+                  "lineno": 5,
+                  "colno": 1151,
+                  "in_app": false
+                },
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js",
+                  "function": "q.Ce",
+                  "lineno": 5,
+                  "colno": 1759,
+                  "in_app": false
+                },
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts",
+                  "function": "pe.parse",
+                  "lineno": 104,
+                  "colno": 21,
+                  "in_app": false
+                },
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts",
+                  "function": "pe.tt",
+                  "lineno": 220,
+                  "colno": 16,
+                  "in_app": false
+                },
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts",
+                  "function": "pe.Oe",
+                  "lineno": 442,
+                  "colno": 11,
+                  "in_app": false
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "web_url": "https://sentry.example/organizations/sample/issues/f42f2815c42129e791b3686a57e0cc73/"
+    },
+    "triggered_rule": "Every new error"
+  },
+  "actor": {
+    "type": "application",
+    "id": "sentry",
+    "name": "Sentry"
+  }
+}
