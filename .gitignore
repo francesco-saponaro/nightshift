@@ -1,0 +1,12 @@
+node_modules/
+packages/*/dist/
+apps/*/dist/
+*.tsbuildinfo
+*.log
+.DS_Store
+.env
+apps/agent/data/
+apps/agent/worktrees/
+apps/sample/data/
+apps/sample/test-results/
+apps/sample/playwright-report/
