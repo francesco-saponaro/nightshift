@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-16 — second evening
+
+- The pull request step (`apps/agent/src/pipeline/pr.ts`): the branch is committed with the agent's edits only, pushed, and opened with `gh` under the `nightshift` label, with a body written from the run's own events (the incident, the reproduction's failing output, the files, every verification command with its time, both verdicts, "Seen, not touched"). Off unless `NIGHTSHIFT_OPEN_PR=1`; auto-merge only with `NIGHTSHIFT_AUTO_MERGE=1` as well. Without it the run records the title and body it would have used.
+- Two more recorded incidents: `date-off-by-one` (reported by the sample's web client through PostHog's `$exception` shape, captured in a real browser) and `double-submit` (from the reporter, Sentry's shape). Every fixture now carries `pr.md`.
+- The sample's web client checks the server's day count against the calendar and hands a disagreement to the error tracker's browser SDK when one is loaded. The symptom tests that called the buggy functions directly moved behind the app, so they still compile once a fix removes the branch and its argument.
+- The read API answers any origin on GET, serves the skills at `/skills`, and `/health` says how pull requests are opened.
+
 ## 2026-11-15 — first evening
 
 - The sample to-do app (`apps/sample`): Fastify API over PGlite, React front, three seeded bugs behind `SAMPLE_BUGS` (`empty-title`, `date-off-by-one`, `double-submit`), a Sentry-shaped error reporter, 27 unit tests, six Playwright verification scenarios.

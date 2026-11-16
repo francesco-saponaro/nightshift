@@ -1,6 +1,6 @@
 [
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "received",
     "status": "info",
     "summary": "sentry: new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"",
@@ -12,40 +12,40 @@
       "agent": "recorded:empty-title"
     },
     "seq": 1,
-    "at": "2026-11-15T22:53:00.922Z"
+    "at": "2026-11-16T20:37:42.344Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "worktree",
     "status": "started",
     "summary": "git worktree add nightshift/inc-f42f2815",
     "data": {
-      "dir": "<worktrees>/9a449a4b-001f-41da-be75-34b06f9feca0",
+      "dir": "<worktrees>/6fe1656a-caf6-4638-a624-43669228dd76",
       "repoRoot": "<repo>",
       "projectDir": ""
     },
     "seq": 2,
-    "at": "2026-11-15T22:53:00.924Z"
+    "at": "2026-11-16T20:37:42.347Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "worktree",
     "status": "info",
-    "summary": "installed in 1.0s",
+    "summary": "installed in 2.0s",
     "data": {
       "command": "pnpm install --frozen-lockfile --prefer-offline",
-      "durationMs": 1026
+      "durationMs": 1953
     },
     "seq": 3,
-    "at": "2026-11-15T22:53:02.250Z"
+    "at": "2026-11-16T20:37:44.626Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "worktree",
     "status": "ok",
-    "summary": "checked out 1805e3af7a on nightshift/inc-f42f2815",
+    "summary": "checked out a71b4a9f1a on nightshift/inc-f42f2815",
     "data": {
-      "base": "1805e3af7a992f920e7f106b119edbf183762949",
+      "base": "a71b4a9f1ac17eb815fd50318ef7eb960454bd52",
       "branch": "nightshift/inc-f42f2815",
       "skills": [
         "verify",
@@ -56,10 +56,10 @@
       ]
     },
     "seq": 4,
-    "at": "2026-11-15T22:53:02.252Z"
+    "at": "2026-11-16T20:37:44.628Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "prompt",
     "status": "ok",
     "summary": "57 lines, three sections",
@@ -67,10 +67,10 @@
       "prompt": "## Goal\n\nFix incident `inc-f42f2815` in the sample app, at its cause, with a failing test first.\n\nThe error tracker (Sentry) reported, at 2026-11-15T22:27:07.773Z:\n\n> new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"\n\nIt happened on `POST /api/todos` with the body `{\"title\":\"\",\"dueOn\":\"2026-11-16\"}`. The release was `sample@0.1.0`. The app was running with the flag `empty-title` on, which marks the code path that shipped this bug; your fix makes the app correct with that flag on, by removing that path. Do not switch a flag off, do not catch the error and relabel it, do not add a dependency.\n\nDone means: a test named `test/incident-inc-f42f2815.test.ts` that fails on the current code with the flag on, for this reason, and passes after your change; every other test and every verification scenario green, with the flag on and off; a diff that a person reads in a minute.\n\n## Context\n\nThe app is `apps/sample`: a Fastify API over a PostgreSQL-shaped store (PGlite) in `src/server/`, a React front in `src/web/`, unit tests in `test/`, Playwright scenarios in `verification/`. Read `apps/sample/src/server/flags.ts` first: it names the three seeded bugs, their symptom and the file each lives in. For this incident it says:\n\n> An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400. (`src/server/app.ts`)\n\nThe stack, as the tracker had it (most recent frame last):\n\n```\n    at <anonymous> (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1151)  [library]\n    at q.Ce (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1759)  [library]\n    at pe.parse (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:104:21)  [library]\n    at pe.tt (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:220:16)  [library]\n    at pe.Oe (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:442:11)  [library]\n```\n\nSkills to read before you start, in this order, from `.claude/skills/`:\n\n- `verify`: How to run the app, how to write and run a verification scenario, and what done means. Read it: before writing the reproduction, and again before saying the fix is done.\n- `react`: How React is written in this codebase: state, effects, forms, data fetching, what not to add. Read it: whenever the change touches a .tsx file.\n- `simple`: Keep it simple: no cleverness, no abstraction for one call site, and explain any file over 200 lines. Read it: on the finished diff, before the pull request.\n- `review`: The strict code review checklist a change must pass before a pull request opens. Read it: on the finished diff, before the pull request.\n\nRules that are not negotiable: the reproduction runs with `SAMPLE_BUGS=empty-title`; the fix is at the cause; the diff holds one change; nothing in `package.json`, the lockfile or any config moves; no real user data from the incident goes into a test (use the shape with made-up values).\n\n## Validation and verification scenarios\n\nYou are judged on the output of these commands, run by the runner after you stop, in this order. Run them yourself first and include the output of each in your final message.\n\n1. `SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts` on the code before your change: must fail, and the failure must be the incident's error.\n2. The same command after your change: must pass.\n3. `pnpm -C apps/sample test`: every unit test passes.\n4. `SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e`: every scenario passes with the flag on. These scenarios are the proof the fix is a fix:\n\n- `verification/add-a-todo.spec.ts`\n- `verification/double-submit.spec.ts`\n- `verification/due-dates.spec.ts`\n\n5. `pnpm -C apps/sample test:e2e`: every scenario passes with the flags off.\n6. `pnpm -r typecheck && pnpm lint` at the root.\n\nThen the review gate (`review.md`) and the simplicity gate (`simple.md`) run on your diff. A refusal from either comes back to you once with the findings; a second refusal stops the run and a person takes over.\n\nWhen you are done, stop. Do not open a pull request, do not commit; the runner does both from your diff and its own logs.\n"
     },
     "seq": 5,
-    "at": "2026-11-15T22:53:02.256Z"
+    "at": "2026-11-16T20:37:44.631Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "started",
     "summary": "asking the agent (recorded:empty-title)",
@@ -78,10 +78,10 @@
       "prompt": "## Goal\n\nFix incident `inc-f42f2815` in the sample app, at its cause, with a failing test first.\n\nThe error tracker (Sentry) reported, at 2026-11-15T22:27:07.773Z:\n\n> new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"\n\nIt happened on `POST /api/todos` with the body `{\"title\":\"\",\"dueOn\":\"2026-11-16\"}`. The release was `sample@0.1.0`. The app was running with the flag `empty-title` on, which marks the code path that shipped this bug; your fix makes the app correct with that flag on, by removing that path. Do not switch a flag off, do not catch the error and relabel it, do not add a dependency.\n\nDone means: a test named `test/incident-inc-f42f2815.test.ts` that fails on the current code with the flag on, for this reason, and passes after your change; every other test and every verification scenario green, with the flag on and off; a diff that a person reads in a minute.\n\n## Context\n\nThe app is `apps/sample`: a Fastify API over a PostgreSQL-shaped store (PGlite) in `src/server/`, a React front in `src/web/`, unit tests in `test/`, Playwright scenarios in `verification/`. Read `apps/sample/src/server/flags.ts` first: it names the three seeded bugs, their symptom and the file each lives in. For this incident it says:\n\n> An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400. (`src/server/app.ts`)\n\nThe stack, as the tracker had it (most recent frame last):\n\n```\n    at <anonymous> (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1151)  [library]\n    at q.Ce (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1759)  [library]\n    at pe.parse (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:104:21)  [library]\n    at pe.tt (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:220:16)  [library]\n    at pe.Oe (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:442:11)  [library]\n```\n\nSkills to read before you start, in this order, from `.claude/skills/`:\n\n- `verify`: How to run the app, how to write and run a verification scenario, and what done means. Read it: before writing the reproduction, and again before saying the fix is done.\n- `react`: How React is written in this codebase: state, effects, forms, data fetching, what not to add. Read it: whenever the change touches a .tsx file.\n- `simple`: Keep it simple: no cleverness, no abstraction for one call site, and explain any file over 200 lines. Read it: on the finished diff, before the pull request.\n- `review`: The strict code review checklist a change must pass before a pull request opens. Read it: on the finished diff, before the pull request.\n\nRules that are not negotiable: the reproduction runs with `SAMPLE_BUGS=empty-title`; the fix is at the cause; the diff holds one change; nothing in `package.json`, the lockfile or any config moves; no real user data from the incident goes into a test (use the shape with made-up values).\n\n## Validation and verification scenarios\n\nYou are judged on the output of these commands, run by the runner after you stop, in this order. Run them yourself first and include the output of each in your final message.\n\n1. `SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts` on the code before your change: must fail, and the failure must be the incident's error.\n2. The same command after your change: must pass.\n3. `pnpm -C apps/sample test`: every unit test passes.\n4. `SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e`: every scenario passes with the flag on. These scenarios are the proof the fix is a fix:\n\n- `verification/add-a-todo.spec.ts`\n- `verification/double-submit.spec.ts`\n- `verification/due-dates.spec.ts`\n\n5. `pnpm -C apps/sample test:e2e`: every scenario passes with the flags off.\n6. `pnpm -r typecheck && pnpm lint` at the root.\n\nThen the review gate (`review.md`) and the simplicity gate (`simple.md`) run on your diff. A refusal from either comes back to you once with the findings; a second refusal stops the run and a person takes over.\n\nWhen you are done, stop. Do not open a pull request, do not commit; the runner does both from your diff and its own logs.\n\n## This phase: the reproduction only\n\nWrite `apps/sample/test/incident-inc-f42f2815.test.ts` and nothing else. It is a unit test that fails on the current code for the reason the incident describes and will pass once the cause is fixed. It sets the flag the incident names through `buildApp({ bugs })`. Do not change any other file yet. Run it once with `SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts` and end your message with the command's output.\n\nReply in plain text, no headings. Do not ask questions; there is nobody to answer them. When you are done, stop.\n"
     },
     "seq": 6,
-    "at": "2026-11-15T22:53:02.259Z"
+    "at": "2026-11-16T20:37:44.634Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "Read {\"file_path\":\"apps/sample/src/server/flags.ts\"}",
@@ -94,10 +94,10 @@
       }
     },
     "seq": 7,
-    "at": "2026-11-15T22:53:02.294Z"
+    "at": "2026-11-16T20:37:44.673Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "tool result: export const SEEDED_BUGS: readonly SeededBug[] = [",
@@ -106,10 +106,10 @@
       "text": "export const SEEDED_BUGS: readonly SeededBug[] = [\n  {\n    name: \"empty-title\",\n    symptom: \"An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400.\",\n    file: \"src/server/app.ts\",\n    trigger: \"POST /api/todos with { title: \\\"\\\" }\",\n  },\n  ..."
     },
     "seq": 8,
-    "at": "2026-11-15T22:53:02.295Z"
+    "at": "2026-11-16T20:37:44.674Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "Read {\"file_path\":\"apps/sample/src/server/app.ts\"}",
@@ -122,10 +122,10 @@
       }
     },
     "seq": 9,
-    "at": "2026-11-15T22:53:02.296Z"
+    "at": "2026-11-16T20:37:44.679Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "tool result: const strictTitle = z.string().trim().min(1, \"the title cannot be empty\").max(200, \"200 characters at most\");",
@@ -134,10 +134,10 @@
       "text": "const strictTitle = z.string().trim().min(1, \"the title cannot be empty\").max(200, \"200 characters at most\");\n// With the empty-title bug on, a blank title is let through and the database refuses it instead.\nconst looseTitle = z.string().max(200);\n\nfunction newTodoSchema(bugs: ReadonlySet<string>) {\n  return z.strictObject({\n    title: bugs.has(\"empty-title\") ? looseTitle : strictTitle,\n    ..."
     },
     "seq": 10,
-    "at": "2026-11-15T22:53:02.297Z"
+    "at": "2026-11-16T20:37:44.680Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "Read {\"file_path\":\"apps/sample/test/api.test.ts\"}",
@@ -150,10 +150,10 @@
       }
     },
     "seq": 11,
-    "at": "2026-11-15T22:53:02.298Z"
+    "at": "2026-11-16T20:37:44.681Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "tool result: import { afterEach, describe, expect, it } from \"vitest\";",
@@ -162,10 +162,10 @@
       "text": "import { afterEach, describe, expect, it } from \"vitest\";\nimport { buildApp, type SampleApp } from \"../src/server/app.js\";\n...\n  it(\"refuses an empty title with a 400 that names the field\", async () => {\n    const { app, reported } = await make();\n    for (const title of [\"\", \"   \"]) {\n      const res = await app.inject({ method: \"POST\", url: \"/api/todos\", payload: { title } });\n      expect(res.statusCode).toBe(400);\n..."
     },
     "seq": 12,
-    "at": "2026-11-15T22:53:02.299Z"
+    "at": "2026-11-16T20:37:44.682Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "assistant: The incident is the check constraint todos_title_not_blank firing on POST /api/todos with an empty title. flags.ts points at app.ts: with em…",
@@ -174,10 +174,10 @@
       "text": "The incident is the check constraint todos_title_not_blank firing on POST /api/todos with an empty title. flags.ts points at app.ts: with empty-title on, newTodoSchema uses looseTitle (z.string().max(200)) instead of strictTitle, so a blank title reaches store.insert and the database refuses it, which the error handler turns into a 500. The existing test for the 400 runs with no flags, so it never saw this path. The reproduction builds the app with bugs: new Set([\"empty-title\"]) and asserts the 400 with the title named in the issues, for the exact body the tracker recorded and for a title of spaces."
     },
     "seq": 13,
-    "at": "2026-11-15T22:53:02.299Z"
+    "at": "2026-11-16T20:37:44.683Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "Write …js\\\";\\n\\n// Incident inc-f42f2815, Sentry, 2026-11-15 22:27 UTC: POST /api/todos with { title: \\\"\\\" } answered 500 ...\"}",
@@ -190,10 +190,10 @@
       }
     },
     "seq": 14,
-    "at": "2026-11-15T22:53:02.300Z"
+    "at": "2026-11-16T20:37:44.683Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "Bash {\"command\":\"SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts\"}",
@@ -206,10 +206,10 @@
       }
     },
     "seq": 15,
-    "at": "2026-11-15T22:53:02.301Z"
+    "at": "2026-11-16T20:37:44.685Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "tool result:  ❯ test/incident-inc-f42f2815.test.ts (2 tests | 2 failed)",
@@ -218,10 +218,10 @@
       "text": " ❯ test/incident-inc-f42f2815.test.ts (2 tests | 2 failed)\n   × incident inc-f42f2815: an empty title on POST /api/todos > is refused with a 400 that names the title, not a 500 from the database\n     → expected 500 to be 400 // Object.is equality\n   × incident inc-f42f2815: an empty title on POST /api/todos > treats a title of spaces the same way\n     → expected 500 to be 400 // Object.is equality\n\n Test Files  1 failed (1)\n      Tests  2 failed (2)"
     },
     "seq": 16,
-    "at": "2026-11-15T22:53:02.302Z"
+    "at": "2026-11-16T20:37:44.687Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "info",
     "summary": "assistant: Wrote apps/sample/test/incident-inc-f42f2815.test.ts: two tests that build the app with the empty-title flag on and assert a 400 naming the …",
@@ -230,10 +230,10 @@
       "text": "Wrote apps/sample/test/incident-inc-f42f2815.test.ts: two tests that build the app with the empty-title flag on and assert a 400 naming the title for the recorded body and for a title of spaces. Nothing else changed.\n\nSAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts\n\n ❯ test/incident-inc-f42f2815.test.ts (2 tests | 2 failed)\n   × is refused with a 400 that names the title, not a 500 from the database\n     → expected 500 to be 400 // Object.is equality\n   × treats a title of spaces the same way\n     → expected 500 to be 400 // Object.is equality\n Test Files  1 failed (1)\n      Tests  2 failed (2)\n\nBoth fail with the incident's symptom: the API answers 500 where it should answer 400."
     },
     "seq": 17,
-    "at": "2026-11-15T22:53:02.303Z"
+    "at": "2026-11-16T20:37:44.688Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "reproduce",
     "status": "ok",
     "summary": "the reproduction fails as it should (exit 1)",
@@ -243,25 +243,25 @@
         "SAMPLE_BUGS": "empty-title"
       },
       "code": 1,
-      "output": "\n RUN  v4.1.12 <worktree>/apps/sample\n\n ❯ |sample| test/incident-inc-f42f2815.test.ts (2 tests | 2 failed) 4116ms\n     × is refused with a 400 that names the title, not a 500 from the database 2375ms\n     × treats a title of spaces the same way 1740ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > is refused with a 400 that names the title, not a 500 from the database\nAssertionError: expected 500 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 500\n\n ❯ test/incident-inc-f42f2815.test.ts:17:28\n     15|     app = await buildApp({ bugs: new Set([\"empty-title\"]), now: () => …\n     16|     const res = await app.inject({ method: \"POST\", url: \"/api/todos\", …\n     17|     expect(res.statusCode).toBe(400);\n       |                            ^\n     18|     expect(res.json()).toMatchObject({ error: \"validation\" });\n     19|     expect(JSON.stringify(res.json().issues)).toContain(\"title\");\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > treats a title of spaces the same way\nAssertionError: expected 500 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 500\n\n ❯ test/incident-inc-f42f2815.test.ts:25:28\n     23|     app = await buildApp({ bugs: new Set([\"empty-title\"]) });\n     24|     const res = await app.inject({ method: \"POST\", url: \"/api/todos\", …\n     25|     expect(res.statusCode).toBe(400);\n       |                            ^\n     26|   });\n     27| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed (2)\n   Start at  22:53:02\n   Duration  4.51s (transform 88ms, setup 0ms, import 249ms, tests 4.12s, environment 0ms)\n\n",
-      "durationMs": 5188
+      "output": "\n RUN  v4.1.12 <worktree>/apps/sample\n\n ❯ |sample| test/incident-inc-f42f2815.test.ts (2 tests | 2 failed) 4324ms\n     × is refused with a 400 that names the title, not a 500 from the database 2642ms\n     × treats a title of spaces the same way 1680ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > is refused with a 400 that names the title, not a 500 from the database\nAssertionError: expected 500 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 500\n\n ❯ test/incident-inc-f42f2815.test.ts:17:28\n     15|     app = await buildApp({ bugs: new Set([\"empty-title\"]), now: () => …\n     16|     const res = await app.inject({ method: \"POST\", url: \"/api/todos\", …\n     17|     expect(res.statusCode).toBe(400);\n       |                            ^\n     18|     expect(res.json()).toMatchObject({ error: \"validation\" });\n     19|     expect(JSON.stringify(res.json().issues)).toContain(\"title\");\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > treats a title of spaces the same way\nAssertionError: expected 500 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 500\n\n ❯ test/incident-inc-f42f2815.test.ts:25:28\n     23|     app = await buildApp({ bugs: new Set([\"empty-title\"]) });\n     24|     const res = await app.inject({ method: \"POST\", url: \"/api/todos\", …\n     25|     expect(res.statusCode).toBe(400);\n       |                            ^\n     26|   });\n     27| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed (2)\n   Start at  20:37:45\n   Duration  4.75s (transform 89ms, setup 0ms, import 256ms, tests 4.32s, environment 0ms)\n\n",
+      "durationMs": 5466
     },
     "seq": 18,
-    "at": "2026-11-15T22:53:07.493Z"
+    "at": "2026-11-16T20:37:50.156Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "started",
     "summary": "asking the agent (recorded:empty-title)",
     "data": {
-      "prompt": "## Goal\n\nFix incident `inc-f42f2815` in the sample app, at its cause, with a failing test first.\n\nThe error tracker (Sentry) reported, at 2026-11-15T22:27:07.773Z:\n\n> new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"\n\nIt happened on `POST /api/todos` with the body `{\"title\":\"\",\"dueOn\":\"2026-11-16\"}`. The release was `sample@0.1.0`. The app was running with the flag `empty-title` on, which marks the code path that shipped this bug; your fix makes the app correct with that flag on, by removing that path. Do not switch a flag off, do not catch the error and relabel it, do not add a dependency.\n\nDone means: a test named `test/incident-inc-f42f2815.test.ts` that fails on the current code with the flag on, for this reason, and passes after your change; every other test and every verification scenario green, with the flag on and off; a diff that a person reads in a minute.\n\n## Context\n\nThe app is `apps/sample`: a Fastify API over a PostgreSQL-shaped store (PGlite) in `src/server/`, a React front in `src/web/`, unit tests in `test/`, Playwright scenarios in `verification/`. Read `apps/sample/src/server/flags.ts` first: it names the three seeded bugs, their symptom and the file each lives in. For this incident it says:\n\n> An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400. (`src/server/app.ts`)\n\nThe stack, as the tracker had it (most recent frame last):\n\n```\n    at <anonymous> (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1151)  [library]\n    at q.Ce (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1759)  [library]\n    at pe.parse (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:104:21)  [library]\n    at pe.tt (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:220:16)  [library]\n    at pe.Oe (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:442:11)  [library]\n```\n\nSkills to read before you start, in this order, from `.claude/skills/`:\n\n- `verify`: How to run the app, how to write and run a verification scenario, and what done means. Read it: before writing the reproduction, and again before saying the fix is done.\n- `react`: How React is written in this codebase: state, effects, forms, data fetching, what not to add. Read it: whenever the change touches a .tsx file.\n- `simple`: Keep it simple: no cleverness, no abstraction for one call site, and explain any file over 200 lines. Read it: on the finished diff, before the pull request.\n- `review`: The strict code review checklist a change must pass before a pull request opens. Read it: on the finished diff, before the pull request.\n\nRules that are not negotiable: the reproduction runs with `SAMPLE_BUGS=empty-title`; the fix is at the cause; the diff holds one change; nothing in `package.json`, the lockfile or any config moves; no real user data from the incident goes into a test (use the shape with made-up values).\n\n## Validation and verification scenarios\n\nYou are judged on the output of these commands, run by the runner after you stop, in this order. Run them yourself first and include the output of each in your final message.\n\n1. `SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts` on the code before your change: must fail, and the failure must be the incident's error.\n2. The same command after your change: must pass.\n3. `pnpm -C apps/sample test`: every unit test passes.\n4. `SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e`: every scenario passes with the flag on. These scenarios are the proof the fix is a fix:\n\n- `verification/add-a-todo.spec.ts`\n- `verification/double-submit.spec.ts`\n- `verification/due-dates.spec.ts`\n\n5. `pnpm -C apps/sample test:e2e`: every scenario passes with the flags off.\n6. `pnpm -r typecheck && pnpm lint` at the root.\n\nThen the review gate (`review.md`) and the simplicity gate (`simple.md`) run on your diff. A refusal from either comes back to you once with the findings; a second refusal stops the run and a person takes over.\n\nWhen you are done, stop. Do not open a pull request, do not commit; the runner does both from your diff and its own logs.\n\n## This phase: the fix\n\nThe reproduction failed as it should. Its output:\n\n```\nRUN  v4.1.12 <worktree>/apps/sample\n\n ❯ |sample| test/incident-inc-f42f2815.test.ts (2 tests | 2 failed) 4116ms\n     × is refused with a 400 that names the title, not a 500 from the database 2375ms\n     × treats a title of spaces the same way 1740ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > is refused with a 400 that names the title, not a 500 from the database\nAssertionError: expected 500 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 500\n\n ❯ test/incident-inc-f42f2815.test.ts:17:28\n     15|     app = await buildApp({ bugs: new Set([\"empty-title\"]), now: () => …\n     16|     const res = await app.inject({ method: \"POST\", url: \"/api/todos\", …\n     17|     expect(res.statusCode).toBe(400);\n       |                            ^\n     18|     expect(res.json()).toMatchObject({ error: \"validation\" });\n     19|     expect(JSON.stringify(res.json().issues)).toContain(\"title\");\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > treats a title of spaces the same way\nAssertionError: expected 500 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 500\n\n ❯ test/incident-inc-f42f2815.test.ts:25:28\n     23|     app = await buildApp({ bugs: new Set([\"empty-title\"]) });\n     24|     const res = await app.inject({ method: \"POST\", url: \"/api/todos\", …\n     25|     expect(res.statusCode).toBe(400);\n       |                            ^\n     26|   });\n     27| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed (2)\n   Start at  22:53:02\n   Duration  4.51s (transform 88ms, setup 0ms, import 249ms, tests 4.12s, environment 0ms)\n```\n\nNow fix the cause, following the skills, with the smallest diff that makes the reproduction pass. Then run every command of the validation section in order and end your message with each command and its last lines of output. Do not touch `test/incident-inc-f42f2815.test.ts` unless it was wrong.\n\nReply in plain text, no headings. Do not ask questions; there is nobody to answer them. When you are done, stop.\n"
+      "prompt": "## Goal\n\nFix incident `inc-f42f2815` in the sample app, at its cause, with a failing test first.\n\nThe error tracker (Sentry) reported, at 2026-11-15T22:27:07.773Z:\n\n> new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"\n\nIt happened on `POST /api/todos` with the body `{\"title\":\"\",\"dueOn\":\"2026-11-16\"}`. The release was `sample@0.1.0`. The app was running with the flag `empty-title` on, which marks the code path that shipped this bug; your fix makes the app correct with that flag on, by removing that path. Do not switch a flag off, do not catch the error and relabel it, do not add a dependency.\n\nDone means: a test named `test/incident-inc-f42f2815.test.ts` that fails on the current code with the flag on, for this reason, and passes after your change; every other test and every verification scenario green, with the flag on and off; a diff that a person reads in a minute.\n\n## Context\n\nThe app is `apps/sample`: a Fastify API over a PostgreSQL-shaped store (PGlite) in `src/server/`, a React front in `src/web/`, unit tests in `test/`, Playwright scenarios in `verification/`. Read `apps/sample/src/server/flags.ts` first: it names the three seeded bugs, their symptom and the file each lives in. For this incident it says:\n\n> An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400. (`src/server/app.ts`)\n\nThe stack, as the tracker had it (most recent frame last):\n\n```\n    at <anonymous> (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1151)  [library]\n    at q.Ce (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1759)  [library]\n    at pe.parse (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:104:21)  [library]\n    at pe.tt (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:220:16)  [library]\n    at pe.Oe (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:442:11)  [library]\n```\n\nSkills to read before you start, in this order, from `.claude/skills/`:\n\n- `verify`: How to run the app, how to write and run a verification scenario, and what done means. Read it: before writing the reproduction, and again before saying the fix is done.\n- `react`: How React is written in this codebase: state, effects, forms, data fetching, what not to add. Read it: whenever the change touches a .tsx file.\n- `simple`: Keep it simple: no cleverness, no abstraction for one call site, and explain any file over 200 lines. Read it: on the finished diff, before the pull request.\n- `review`: The strict code review checklist a change must pass before a pull request opens. Read it: on the finished diff, before the pull request.\n\nRules that are not negotiable: the reproduction runs with `SAMPLE_BUGS=empty-title`; the fix is at the cause; the diff holds one change; nothing in `package.json`, the lockfile or any config moves; no real user data from the incident goes into a test (use the shape with made-up values).\n\n## Validation and verification scenarios\n\nYou are judged on the output of these commands, run by the runner after you stop, in this order. Run them yourself first and include the output of each in your final message.\n\n1. `SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts` on the code before your change: must fail, and the failure must be the incident's error.\n2. The same command after your change: must pass.\n3. `pnpm -C apps/sample test`: every unit test passes.\n4. `SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e`: every scenario passes with the flag on. These scenarios are the proof the fix is a fix:\n\n- `verification/add-a-todo.spec.ts`\n- `verification/double-submit.spec.ts`\n- `verification/due-dates.spec.ts`\n\n5. `pnpm -C apps/sample test:e2e`: every scenario passes with the flags off.\n6. `pnpm -r typecheck && pnpm lint` at the root.\n\nThen the review gate (`review.md`) and the simplicity gate (`simple.md`) run on your diff. A refusal from either comes back to you once with the findings; a second refusal stops the run and a person takes over.\n\nWhen you are done, stop. Do not open a pull request, do not commit; the runner does both from your diff and its own logs.\n\n## This phase: the fix\n\nThe reproduction failed as it should. Its output:\n\n```\nRUN  v4.1.12 <worktree>/apps/sample\n\n ❯ |sample| test/incident-inc-f42f2815.test.ts (2 tests | 2 failed) 4324ms\n     × is refused with a 400 that names the title, not a 500 from the database 2642ms\n     × treats a title of spaces the same way 1680ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > is refused with a 400 that names the title, not a 500 from the database\nAssertionError: expected 500 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 500\n\n ❯ test/incident-inc-f42f2815.test.ts:17:28\n     15|     app = await buildApp({ bugs: new Set([\"empty-title\"]), now: () => …\n     16|     const res = await app.inject({ method: \"POST\", url: \"/api/todos\", …\n     17|     expect(res.statusCode).toBe(400);\n       |                            ^\n     18|     expect(res.json()).toMatchObject({ error: \"validation\" });\n     19|     expect(JSON.stringify(res.json().issues)).toContain(\"title\");\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > treats a title of spaces the same way\nAssertionError: expected 500 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 500\n\n ❯ test/incident-inc-f42f2815.test.ts:25:28\n     23|     app = await buildApp({ bugs: new Set([\"empty-title\"]) });\n     24|     const res = await app.inject({ method: \"POST\", url: \"/api/todos\", …\n     25|     expect(res.statusCode).toBe(400);\n       |                            ^\n     26|   });\n     27| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed (2)\n   Start at  20:37:45\n   Duration  4.75s (transform 89ms, setup 0ms, import 256ms, tests 4.32s, environment 0ms)\n```\n\nNow fix the cause, following the skills, with the smallest diff that makes the reproduction pass. Then run every command of the validation section in order and end your message with each command and its last lines of output. Do not touch `test/incident-inc-f42f2815.test.ts` unless it was wrong.\n\nReply in plain text, no headings. Do not ask questions; there is nobody to answer them. When you are done, stop.\n"
     },
     "seq": 19,
-    "at": "2026-11-15T22:53:07.496Z"
+    "at": "2026-11-16T20:37:50.158Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "assistant: The cause is the lenient schema behind the flag, not the constraint and not the error handler. The fix removes the looseTitle path so the st…",
@@ -270,10 +270,10 @@
       "text": "The cause is the lenient schema behind the flag, not the constraint and not the error handler. The fix removes the looseTitle path so the strict schema is the only one: newTodoSchema becomes a constant, the title is always strictTitle, and the route calls newTodoSchema.parse. The flag's entry in flags.ts gets fixedBy: \"inc-f42f2815\" so SAMPLE_BUGS=empty-title is still accepted and now changes nothing. The symptom test in api.test.ts is written to step aside once the entry is marked fixed, so no test is touched."
     },
     "seq": 20,
-    "at": "2026-11-15T22:53:07.516Z"
+    "at": "2026-11-16T20:37:50.179Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "Edit …bject({\\n  title: strictTitle,\\n  dueOn: dueOn.nullable().optional(),\\n  clientKey: z.string().uuid().optional(),\\n});\"}",
@@ -286,10 +286,10 @@
       }
     },
     "seq": 21,
-    "at": "2026-11-15T22:53:07.517Z"
+    "at": "2026-11-16T20:37:50.180Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "Edit …t input = newTodoSchema(bugs).parse(request.body);\",\"new_string\":\"    const input = newTodoSchema.parse(request.body);\"}",
@@ -302,10 +302,10 @@
       }
     },
     "seq": 22,
-    "at": "2026-11-15T22:53:07.518Z"
+    "at": "2026-11-16T20:37:50.181Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "Edit …\\n  },\",\"new_string\":\"    trigger: \\\"POST /api/todos with { title: \\\\\\\"\\\\\\\" }\\\",\\n    fixedBy: \\\"inc-f42f2815\\\",\\n  },\"}",
@@ -318,10 +318,10 @@
       }
     },
     "seq": 23,
-    "at": "2026-11-15T22:53:07.519Z"
+    "at": "2026-11-16T20:37:50.182Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "Bash {\"command\":\"SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts\"}",
@@ -334,10 +334,10 @@
       }
     },
     "seq": 24,
-    "at": "2026-11-15T22:53:07.520Z"
+    "at": "2026-11-16T20:37:50.182Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "tool result:  ✓ test/incident-inc-f42f2815.test.ts (2 tests) 1.9s",
@@ -346,10 +346,10 @@
       "text": " ✓ test/incident-inc-f42f2815.test.ts (2 tests) 1.9s\n\n Test Files  1 passed (1)\n      Tests  2 passed (2)"
     },
     "seq": 25,
-    "at": "2026-11-15T22:53:07.520Z"
+    "at": "2026-11-16T20:37:50.183Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "Bash {\"command\":\"pnpm -C apps/sample test\"}",
@@ -362,22 +362,22 @@
       }
     },
     "seq": 26,
-    "at": "2026-11-15T22:53:07.521Z"
+    "at": "2026-11-16T20:37:50.184Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
-    "summary": "tool result:  Test Files  6 passed (6)",
+    "summary": "tool result:  Test Files  7 passed (7)",
     "data": {
       "role": "tool",
-      "text": " Test Files  6 passed (6)\n      Tests  26 passed | 1 skipped (27)"
+      "text": " Test Files  7 passed (7)\n      Tests  25 passed | 1 skipped (26)"
     },
     "seq": 27,
-    "at": "2026-11-15T22:53:07.522Z"
+    "at": "2026-11-16T20:37:50.184Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "Bash {\"command\":\"SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e && pnpm -C apps/sample test:e2e\"}",
@@ -390,10 +390,10 @@
       }
     },
     "seq": 28,
-    "at": "2026-11-15T22:53:07.523Z"
+    "at": "2026-11-16T20:37:50.185Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "tool result:   6 passed (7.3s)",
@@ -402,10 +402,10 @@
       "text": "  6 passed (7.3s)\n  6 passed (7.0s)"
     },
     "seq": 29,
-    "at": "2026-11-15T22:53:07.524Z"
+    "at": "2026-11-16T20:37:50.186Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "Bash {\"command\":\"pnpm -r typecheck && pnpm lint\"}",
@@ -418,10 +418,10 @@
       }
     },
     "seq": 30,
-    "at": "2026-11-15T22:53:07.525Z"
+    "at": "2026-11-16T20:37:50.186Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "tool result: > eslint .",
@@ -430,22 +430,22 @@
       "text": "> eslint .\n"
     },
     "seq": 31,
-    "at": "2026-11-15T22:53:07.525Z"
+    "at": "2026-11-16T20:37:50.187Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "info",
     "summary": "assistant: Fixed at the cause. apps/sample/src/server/app.ts: the lenient looseTitle schema and the branch on bugs.has(\"empty-title\") are gone; newTodo…",
     "data": {
       "role": "assistant",
-      "text": "Fixed at the cause. apps/sample/src/server/app.ts: the lenient looseTitle schema and the branch on bugs.has(\"empty-title\") are gone; newTodoSchema is one strict object and the route parses with it. apps/sample/src/server/flags.ts: the empty-title entry is marked fixedBy: \"inc-f42f2815\". The reproduction is untouched.\n\nSAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts\n Tests  2 passed (2)\n\npnpm -C apps/sample test\n Test Files  6 passed (6)\n Tests  26 passed | 1 skipped (27)\n(the skipped one is the empty-title symptom test, which steps aside once the entry is marked fixed)\n\nSAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e\n 6 passed (7.3s)\n\npnpm -C apps/sample test:e2e\n 6 passed (7.0s)\n\npnpm -r typecheck && pnpm lint\n clean\n\nDiff: 3 files, +34 −10, one new file (the reproduction). No dependency, no config, no renamed file."
+      "text": "Fixed at the cause. apps/sample/src/server/app.ts: the lenient looseTitle schema and the branch on bugs.has(\"empty-title\") are gone; newTodoSchema is one strict object and the route parses with it. apps/sample/src/server/flags.ts: the empty-title entry is marked fixedBy: \"inc-f42f2815\". The reproduction is untouched.\n\nSAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts\n Tests  2 passed (2)\n\npnpm -C apps/sample test\n Test Files  7 passed (7)\n Tests  25 passed | 1 skipped (26)\n(the skipped one is the empty-title symptom test, which steps aside once the entry is marked fixed)\n\nSAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e\n 6 passed (7.3s)\n\npnpm -C apps/sample test:e2e\n 6 passed (7.0s)\n\npnpm -r typecheck && pnpm lint\n clean\n\nDiff: 3 files, +34 −10, one new file (the reproduction). No dependency, no config, no renamed file."
     },
     "seq": 32,
-    "at": "2026-11-15T22:53:07.526Z"
+    "at": "2026-11-16T20:37:50.188Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "fix",
     "status": "ok",
     "summary": "the reproduction passes after the fix",
@@ -455,14 +455,14 @@
         "SAMPLE_BUGS": "empty-title"
       },
       "code": 0,
-      "output": "\n RUN  v4.1.12 <worktree>/apps/sample\n\n\n Test Files  1 passed (1)\n      Tests  2 passed (2)\n   Start at  22:53:08\n   Duration  4.65s (transform 81ms, setup 0ms, import 263ms, tests 4.18s, environment 0ms)\n\n",
-      "durationMs": 5416
+      "output": "\n RUN  v4.1.12 <worktree>/apps/sample\n\n\n Test Files  1 passed (1)\n      Tests  2 passed (2)\n   Start at  20:37:50\n   Duration  4.90s (transform 68ms, setup 0ms, import 228ms, tests 4.52s, environment 0ms)\n\n",
+      "durationMs": 5585
     },
     "seq": 33,
-    "at": "2026-11-15T22:53:12.944Z"
+    "at": "2026-11-16T20:37:55.775Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "verify",
     "status": "started",
     "summary": "5 commands",
@@ -476,89 +476,89 @@
       ]
     },
     "seq": 34,
-    "at": "2026-11-15T22:53:12.948Z"
+    "at": "2026-11-16T20:37:55.777Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "verify",
     "status": "info",
-    "summary": "`pnpm -C apps/sample test` passed in 28.9s",
+    "summary": "`pnpm -C apps/sample test` passed in 30.3s",
     "data": {
       "command": "pnpm -C apps/sample test",
       "code": 0,
-      "output": "\n> @nightshift/sample@0.1.0 test <worktree>/apps/sample\n> vitest run\n\n\n RUN  v4.1.12 <worktree>/apps/sample\n\n\n Test Files  6 passed (6)\n      Tests  26 passed | 1 skipped (27)\n   Start at  22:53:13\n   Duration  28.17s (transform 146ms, setup 0ms, import 501ms, tests 26.96s, environment 0ms)\n\n",
-      "durationMs": 28942
+      "output": "\n> @nightshift/sample@0.1.0 test <worktree>/apps/sample\n> vitest run\n\n\n RUN  v4.1.12 <worktree>/apps/sample\n\n\n Test Files  7 passed (7)\n      Tests  25 passed | 1 skipped (26)\n   Start at  20:37:56\n   Duration  29.59s (transform 182ms, setup 0ms, import 604ms, tests 28.00s, environment 1ms)\n\n",
+      "durationMs": 30256
     },
     "seq": 35,
-    "at": "2026-11-15T22:53:41.892Z"
+    "at": "2026-11-16T20:38:26.036Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "verify",
     "status": "info",
-    "summary": "`SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e` passed in 8.0s",
+    "summary": "`SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e` passed in 8.3s",
     "data": {
       "command": "SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e",
       "code": 0,
-      "output": "\n> @nightshift/sample@0.1.0 test:e2e <worktree>/apps/sample\n> playwright test\n\n\nRunning 6 tests using 1 worker\n\n  ✓  1 verification/add-a-todo.spec.ts:4:1 › a to-do can be added, ticked off and removed (522ms)\n  ✓  2 verification/add-a-todo.spec.ts:21:1 › an empty title is refused with a message, not a crash (334ms)\n  ✓  3 verification/double-submit.spec.ts:3:1 › a double click on Add creates one to-do and shows no error (499ms)\n  ✓  4 verification/due-dates.spec.ts:4:1 › a to-do due tomorrow says so, whatever the time of day (320ms)\n  ✓  5 verification/due-dates.spec.ts:11:1 › a to-do due today is not overdue (297ms)\n  ✓  6 verification/due-dates.spec.ts:18:1 › a to-do due last week is overdue by seven days (318ms)\n\n  6 passed (6.9s)\n",
-      "durationMs": 7972
+      "output": "\n> @nightshift/sample@0.1.0 test:e2e <worktree>/apps/sample\n> playwright test\n\n\nRunning 6 tests using 1 worker\n\n(node:9014) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ✓  1 verification/add-a-todo.spec.ts:4:1 › a to-do can be added, ticked off and removed (647ms)\n  ✓  2 verification/add-a-todo.spec.ts:21:1 › an empty title is refused with a message, not a crash (327ms)\n  ✓  3 verification/double-submit.spec.ts:3:1 › a double click on Add creates one to-do and shows no error (481ms)\n  ✓  4 verification/due-dates.spec.ts:4:1 › a to-do due tomorrow says so, whatever the time of day (342ms)\n  ✓  5 verification/due-dates.spec.ts:11:1 › a to-do due today is not overdue (311ms)\n  ✓  6 verification/due-dates.spec.ts:18:1 › a to-do due last week is overdue by seven days (344ms)\n\n  6 passed (7.2s)\n",
+      "durationMs": 8324
     },
     "seq": 36,
-    "at": "2026-11-15T22:53:49.866Z"
+    "at": "2026-11-16T20:38:34.363Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "verify",
     "status": "info",
-    "summary": "`pnpm -C apps/sample test:e2e` passed in 7.8s",
+    "summary": "`pnpm -C apps/sample test:e2e` passed in 8.2s",
     "data": {
       "command": "pnpm -C apps/sample test:e2e",
       "code": 0,
-      "output": "\n> @nightshift/sample@0.1.0 test:e2e <worktree>/apps/sample\n> playwright test\n\n\nRunning 6 tests using 1 worker\n\n  ✓  1 verification/add-a-todo.spec.ts:4:1 › a to-do can be added, ticked off and removed (591ms)\n  ✓  2 verification/add-a-todo.spec.ts:21:1 › an empty title is refused with a message, not a crash (318ms)\n  ✓  3 verification/double-submit.spec.ts:3:1 › a double click on Add creates one to-do and shows no error (451ms)\n  ✓  4 verification/due-dates.spec.ts:4:1 › a to-do due tomorrow says so, whatever the time of day (330ms)\n  ✓  5 verification/due-dates.spec.ts:11:1 › a to-do due today is not overdue (329ms)\n  ✓  6 verification/due-dates.spec.ts:18:1 › a to-do due last week is overdue by seven days (306ms)\n\n  6 passed (6.9s)\n",
-      "durationMs": 7765
+      "output": "\n> @nightshift/sample@0.1.0 test:e2e <worktree>/apps/sample\n> playwright test\n\n\nRunning 6 tests using 1 worker\n\n(node:9212) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ✓  1 verification/add-a-todo.spec.ts:4:1 › a to-do can be added, ticked off and removed (586ms)\n  ✓  2 verification/add-a-todo.spec.ts:21:1 › an empty title is refused with a message, not a crash (359ms)\n  ✓  3 verification/double-submit.spec.ts:3:1 › a double click on Add creates one to-do and shows no error (580ms)\n  ✓  4 verification/due-dates.spec.ts:4:1 › a to-do due tomorrow says so, whatever the time of day (315ms)\n  ✓  5 verification/due-dates.spec.ts:11:1 › a to-do due today is not overdue (303ms)\n  ✓  6 verification/due-dates.spec.ts:18:1 › a to-do due last week is overdue by seven days (390ms)\n\n  6 passed (7.3s)\n",
+      "durationMs": 8248
     },
     "seq": 37,
-    "at": "2026-11-15T22:53:57.635Z"
+    "at": "2026-11-16T20:38:42.614Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "verify",
     "status": "info",
-    "summary": "`pnpm -r typecheck` passed in 4.4s",
+    "summary": "`pnpm -r typecheck` passed in 9.1s",
     "data": {
       "command": "pnpm -r typecheck",
       "code": 0,
-      "output": "Scope: 2 of 3 workspace projects\napps/sample typecheck$ tsc -p tsconfig.json --noEmit\npackages/skills typecheck$ tsc -p tsconfig.json --noEmit\npackages/skills typecheck: Done\napps/sample typecheck: Done\n",
-      "durationMs": 4351
+      "output": "Scope: 3 of 4 workspace projects\napps/sample typecheck$ tsc -p tsconfig.json --noEmit\npackages/skills typecheck$ tsc -p tsconfig.json --noEmit\npackages/skills typecheck: Done\napps/sample typecheck: Done\napps/agent typecheck$ tsc -p tsconfig.json --noEmit\napps/agent typecheck: Done\n",
+      "durationMs": 9090
     },
     "seq": 38,
-    "at": "2026-11-15T22:54:01.989Z"
+    "at": "2026-11-16T20:38:51.705Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "verify",
     "status": "info",
-    "summary": "`pnpm lint` passed in 1.7s",
+    "summary": "`pnpm lint` passed in 3.0s",
     "data": {
       "command": "pnpm lint",
       "code": 0,
       "output": "\n> nightshift@0.1.0 lint <worktree>\n> eslint .\n\n",
-      "durationMs": 1732
+      "durationMs": 2950
     },
     "seq": 39,
-    "at": "2026-11-15T22:54:03.722Z"
+    "at": "2026-11-16T20:38:54.657Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "verify",
     "status": "ok",
     "summary": "every verification command passed",
     "data": {},
     "seq": 40,
-    "at": "2026-11-15T22:54:03.724Z"
+    "at": "2026-11-16T20:38:54.659Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "review",
     "status": "info",
     "summary": "no mechanical findings",
@@ -573,10 +573,10 @@
       "attempt": 1
     },
     "seq": 41,
-    "at": "2026-11-15T22:54:03.838Z"
+    "at": "2026-11-16T20:38:54.822Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "review",
     "status": "started",
     "summary": "asking the agent (recorded:empty-title)",
@@ -584,10 +584,10 @@
       "prompt": "## Goal\n\nFix incident `inc-f42f2815` in the sample app, at its cause, with a failing test first.\n\nThe error tracker (Sentry) reported, at 2026-11-15T22:27:07.773Z:\n\n> new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"\n\nIt happened on `POST /api/todos` with the body `{\"title\":\"\",\"dueOn\":\"2026-11-16\"}`. The release was `sample@0.1.0`. The app was running with the flag `empty-title` on, which marks the code path that shipped this bug; your fix makes the app correct with that flag on, by removing that path. Do not switch a flag off, do not catch the error and relabel it, do not add a dependency.\n\nDone means: a test named `test/incident-inc-f42f2815.test.ts` that fails on the current code with the flag on, for this reason, and passes after your change; every other test and every verification scenario green, with the flag on and off; a diff that a person reads in a minute.\n\n## Context\n\nThe app is `apps/sample`: a Fastify API over a PostgreSQL-shaped store (PGlite) in `src/server/`, a React front in `src/web/`, unit tests in `test/`, Playwright scenarios in `verification/`. Read `apps/sample/src/server/flags.ts` first: it names the three seeded bugs, their symptom and the file each lives in. For this incident it says:\n\n> An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400. (`src/server/app.ts`)\n\nThe stack, as the tracker had it (most recent frame last):\n\n```\n    at <anonymous> (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1151)  [library]\n    at q.Ce (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1759)  [library]\n    at pe.parse (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:104:21)  [library]\n    at pe.tt (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:220:16)  [library]\n    at pe.Oe (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:442:11)  [library]\n```\n\nSkills to read before you start, in this order, from `.claude/skills/`:\n\n- `verify`: How to run the app, how to write and run a verification scenario, and what done means. Read it: before writing the reproduction, and again before saying the fix is done.\n- `react`: How React is written in this codebase: state, effects, forms, data fetching, what not to add. Read it: whenever the change touches a .tsx file.\n- `simple`: Keep it simple: no cleverness, no abstraction for one call site, and explain any file over 200 lines. Read it: on the finished diff, before the pull request.\n- `review`: The strict code review checklist a change must pass before a pull request opens. Read it: on the finished diff, before the pull request.\n\nRules that are not negotiable: the reproduction runs with `SAMPLE_BUGS=empty-title`; the fix is at the cause; the diff holds one change; nothing in `package.json`, the lockfile or any config moves; no real user data from the incident goes into a test (use the shape with made-up values).\n\n## Validation and verification scenarios\n\nYou are judged on the output of these commands, run by the runner after you stop, in this order. Run them yourself first and include the output of each in your final message.\n\n1. `SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts` on the code before your change: must fail, and the failure must be the incident's error.\n2. The same command after your change: must pass.\n3. `pnpm -C apps/sample test`: every unit test passes.\n4. `SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e`: every scenario passes with the flag on. These scenarios are the proof the fix is a fix:\n\n- `verification/add-a-todo.spec.ts`\n- `verification/double-submit.spec.ts`\n- `verification/due-dates.spec.ts`\n\n5. `pnpm -C apps/sample test:e2e`: every scenario passes with the flags off.\n6. `pnpm -r typecheck && pnpm lint` at the root.\n\nThen the review gate (`review.md`) and the simplicity gate (`simple.md`) run on your diff. A refusal from either comes back to you once with the findings; a second refusal stops the run and a person takes over.\n\nWhen you are done, stop. Do not open a pull request, do not commit; the runner does both from your diff and its own logs.\n\n## This phase: the review\n\nApply `review.md` to the diff below, line by line, as the reviewer, not as the author. The program already found these on the diff (empty means none):\n\n- (none)\n\n```diff\ndiff --git a/apps/sample/src/server/app.ts b/apps/sample/src/server/app.ts\nindex 949f304..b942364 100644\n--- a/apps/sample/src/server/app.ts\n+++ b/apps/sample/src/server/app.ts\n@@ -25,16 +25,12 @@ const dueOn = z\n   .refine((s) => !Number.isNaN(Date.parse(`${s}T00:00:00Z`)), \"a real calendar date\");\n \n const strictTitle = z.string().trim().min(1, \"the title cannot be empty\").max(200, \"200 characters at most\");\n-// With the empty-title bug on, a blank title is let through and the database refuses it instead.\n-const looseTitle = z.string().max(200);\n \n-function newTodoSchema(bugs: ReadonlySet<string>) {\n-  return z.strictObject({\n-    title: bugs.has(\"empty-title\") ? looseTitle : strictTitle,\n-    dueOn: dueOn.nullable().optional(),\n-    clientKey: z.string().uuid().optional(),\n-  });\n-}\n+const newTodoSchema = z.strictObject({\n+  title: strictTitle,\n+  dueOn: dueOn.nullable().optional(),\n+  clientKey: z.string().uuid().optional(),\n+});\n \n const patchSchema = z\n   .strictObject({\n@@ -88,7 +84,7 @@ export async function buildApp(options: SampleAppOptions = {}): Promise<SampleAp\n   });\n \n   app.post(\"/api/todos\", async (request, reply) => {\n-    const input = newTodoSchema(bugs).parse(request.body);\n+    const input = newTodoSchema.parse(request.body);\n     const { todo, created } = await store.insert(input, bugs);\n     return reply.status(created ? 201 : 200).send(present(todo));\n   });\ndiff --git a/apps/sample/src/server/flags.ts b/apps/sample/src/server/flags.ts\nindex 057568e..7c2d5ad 100644\n--- a/apps/sample/src/server/flags.ts\n+++ b/apps/sample/src/server/flags.ts\n@@ -21,6 +21,7 @@ export const SEEDED_BUGS: readonly SeededBug[] = [\n     symptom: \"An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400.\",\n     file: \"src/server/app.ts\",\n     trigger: \"POST /api/todos with { title: \\\"\\\" }\",\n+    fixedBy: \"inc-f42f2815\",\n   },\n   {\n     name: \"date-off-by-one\",\ndiff --git a/apps/sample/test/incident-inc-f42f2815.test.ts b/apps/sample/test/incident-inc-f42f2815.test.ts\nnew file mode 100644\nindex 0000000..7835b55\n--- /dev/null\n+++ b/apps/sample/test/incident-inc-f42f2815.test.ts\n@@ -0,0 +1,27 @@\n+import { afterEach, describe, expect, it } from \"vitest\";\n+import { buildApp, type SampleApp } from \"../src/server/app.js\";\n+\n+// Incident inc-f42f2815, Sentry, 2026-11-15 22:27 UTC: POST /api/todos with { title: \"\" } answered 500\n+// (\"new row for relation todos violates check constraint todos_title_not_blank\") while SAMPLE_BUGS=empty-title.\n+// A blank title must be refused at the edge with a 400 that names the title.\n+\n+let app: SampleApp;\n+afterEach(async () => {\n+  await app?.close();\n+});\n+\n+describe(\"incident inc-f42f2815: an empty title on POST /api/todos\", () => {\n+  it(\"is refused with a 400 that names the title, not a 500 from the database\", async () => {\n+    app = await buildApp({ bugs: new Set([\"empty-title\"]), now: () => new Date(\"2026-11-15T22:27:07.773Z\") });\n+    const res = await app.inject({ method: \"POST\", url: \"/api/todos\", payload: { title: \"\", dueOn: \"2026-11-16\" } });\n+    expect(res.statusCode).toBe(400);\n+    expect(res.json()).toMatchObject({ error: \"validation\" });\n+    expect(JSON.stringify(res.json().issues)).toContain(\"title\");\n+  });\n+\n+  it(\"treats a title of spaces the same way\", async () => {\n+    app = await buildApp({ bugs: new Set([\"empty-title\"]) });\n+    const res = await app.inject({ method: \"POST\", url: \"/api/todos\", payload: { title: \"   \" } });\n+    expect(res.statusCode).toBe(400);\n+  });\n+});\n```\n\nEnd your message with exactly one verdict line, as the skill says: `APPROVED` or `REFUSED: <rule number> — <one sentence>`.\n\nReply in plain text, no headings. Do not ask questions; there is nobody to answer them. When you are done, stop.\n"
     },
     "seq": 42,
-    "at": "2026-11-15T22:54:03.840Z"
+    "at": "2026-11-16T20:38:54.823Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "review",
     "status": "info",
     "summary": "assistant: Reading the goal, then the diff, then app.ts and flags.ts in full.",
@@ -596,10 +596,10 @@
       "text": "Reading the goal, then the diff, then app.ts and flags.ts in full.\n\n1. Reproduction exists and failed first: yes, test/incident-inc-f42f2815.test.ts, sets bugs: new Set([\"empty-title\"]), failed with expected 500 to be 400 before and passes after.\n2. Fix at the cause: yes, the title is validated by the strict schema before the insert; nothing catches the constraint error.\n3. Nothing the goal did not ask for: yes, two hunks in app.ts remove the lenient path and its call, one line in flags.ts retires the flag.\n4. No dependency: yes.\n5. No test weakened: yes, no test file changed other than the new one.\n6. Errors still reach the tracker: yes, the error handler is untouched.\n7. Input validated at the edge: yes, z.strictObject with the trimmed, bounded title.\n8. Database stays the last line of defence: yes, the CHECK constraint is still there.\n9. Concurrency: not applicable.\n10. Secrets and personal data: yes, the test uses the recorded body shape with an empty title and a date, nothing personal.\n11. Every scenario and test passes with the flag on and off: yes, the outputs are in the fix message.\n\nAdvisory: 13, the comment at the top of the reproduction says why, good; 14, the 400 names the field. Nothing to add."
     },
     "seq": 43,
-    "at": "2026-11-15T22:54:03.842Z"
+    "at": "2026-11-16T20:38:54.825Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "review",
     "status": "info",
     "summary": "assistant: APPROVED",
@@ -608,10 +608,10 @@
       "text": "APPROVED\n- 13: the reproduction's header comment explains the incident; keep that habit.\n- 15: the react skill does not apply (no .tsx touched); simple is judged next."
     },
     "seq": 44,
-    "at": "2026-11-15T22:54:03.843Z"
+    "at": "2026-11-16T20:38:54.826Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "review",
     "status": "ok",
     "summary": "review: passed",
@@ -625,10 +625,10 @@
       "attempt": 1
     },
     "seq": 45,
-    "at": "2026-11-15T22:54:03.844Z"
+    "at": "2026-11-16T20:38:54.828Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "simple",
     "status": "info",
     "summary": "no mechanical findings",
@@ -643,10 +643,10 @@
       "attempt": 1
     },
     "seq": 46,
-    "at": "2026-11-15T22:54:03.915Z"
+    "at": "2026-11-16T20:38:54.900Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "simple",
     "status": "started",
     "summary": "asking the agent (recorded:empty-title)",
@@ -654,10 +654,10 @@
       "prompt": "## Goal\n\nFix incident `inc-f42f2815` in the sample app, at its cause, with a failing test first.\n\nThe error tracker (Sentry) reported, at 2026-11-15T22:27:07.773Z:\n\n> new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"\n\nIt happened on `POST /api/todos` with the body `{\"title\":\"\",\"dueOn\":\"2026-11-16\"}`. The release was `sample@0.1.0`. The app was running with the flag `empty-title` on, which marks the code path that shipped this bug; your fix makes the app correct with that flag on, by removing that path. Do not switch a flag off, do not catch the error and relabel it, do not add a dependency.\n\nDone means: a test named `test/incident-inc-f42f2815.test.ts` that fails on the current code with the flag on, for this reason, and passes after your change; every other test and every verification scenario green, with the flag on and off; a diff that a person reads in a minute.\n\n## Context\n\nThe app is `apps/sample`: a Fastify API over a PostgreSQL-shaped store (PGlite) in `src/server/`, a React front in `src/web/`, unit tests in `test/`, Playwright scenarios in `verification/`. Read `apps/sample/src/server/flags.ts` first: it names the three seeded bugs, their symptom and the file each lives in. For this incident it says:\n\n> An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400. (`src/server/app.ts`)\n\nThe stack, as the tracker had it (most recent frame last):\n\n```\n    at <anonymous> (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1151)  [library]\n    at q.Ce (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js:5:1759)  [library]\n    at pe.parse (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:104:21)  [library]\n    at pe.tt (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:220:16)  [library]\n    at pe.Oe (/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts:442:11)  [library]\n```\n\nSkills to read before you start, in this order, from `.claude/skills/`:\n\n- `verify`: How to run the app, how to write and run a verification scenario, and what done means. Read it: before writing the reproduction, and again before saying the fix is done.\n- `react`: How React is written in this codebase: state, effects, forms, data fetching, what not to add. Read it: whenever the change touches a .tsx file.\n- `simple`: Keep it simple: no cleverness, no abstraction for one call site, and explain any file over 200 lines. Read it: on the finished diff, before the pull request.\n- `review`: The strict code review checklist a change must pass before a pull request opens. Read it: on the finished diff, before the pull request.\n\nRules that are not negotiable: the reproduction runs with `SAMPLE_BUGS=empty-title`; the fix is at the cause; the diff holds one change; nothing in `package.json`, the lockfile or any config moves; no real user data from the incident goes into a test (use the shape with made-up values).\n\n## Validation and verification scenarios\n\nYou are judged on the output of these commands, run by the runner after you stop, in this order. Run them yourself first and include the output of each in your final message.\n\n1. `SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts` on the code before your change: must fail, and the failure must be the incident's error.\n2. The same command after your change: must pass.\n3. `pnpm -C apps/sample test`: every unit test passes.\n4. `SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e`: every scenario passes with the flag on. These scenarios are the proof the fix is a fix:\n\n- `verification/add-a-todo.spec.ts`\n- `verification/double-submit.spec.ts`\n- `verification/due-dates.spec.ts`\n\n5. `pnpm -C apps/sample test:e2e`: every scenario passes with the flags off.\n6. `pnpm -r typecheck && pnpm lint` at the root.\n\nThen the review gate (`review.md`) and the simplicity gate (`simple.md`) run on your diff. A refusal from either comes back to you once with the findings; a second refusal stops the run and a person takes over.\n\nWhen you are done, stop. Do not open a pull request, do not commit; the runner does both from your diff and its own logs.\n\n## This phase: simplicity\n\nApply `simple.md` to the same diff. Count files changed, lines added and removed, and anything added from the second list. The program already found these (empty means none):\n\n- (none)\n\n```diff\ndiff --git a/apps/sample/src/server/app.ts b/apps/sample/src/server/app.ts\nindex 949f304..b942364 100644\n--- a/apps/sample/src/server/app.ts\n+++ b/apps/sample/src/server/app.ts\n@@ -25,16 +25,12 @@ const dueOn = z\n   .refine((s) => !Number.isNaN(Date.parse(`${s}T00:00:00Z`)), \"a real calendar date\");\n \n const strictTitle = z.string().trim().min(1, \"the title cannot be empty\").max(200, \"200 characters at most\");\n-// With the empty-title bug on, a blank title is let through and the database refuses it instead.\n-const looseTitle = z.string().max(200);\n \n-function newTodoSchema(bugs: ReadonlySet<string>) {\n-  return z.strictObject({\n-    title: bugs.has(\"empty-title\") ? looseTitle : strictTitle,\n-    dueOn: dueOn.nullable().optional(),\n-    clientKey: z.string().uuid().optional(),\n-  });\n-}\n+const newTodoSchema = z.strictObject({\n+  title: strictTitle,\n+  dueOn: dueOn.nullable().optional(),\n+  clientKey: z.string().uuid().optional(),\n+});\n \n const patchSchema = z\n   .strictObject({\n@@ -88,7 +84,7 @@ export async function buildApp(options: SampleAppOptions = {}): Promise<SampleAp\n   });\n \n   app.post(\"/api/todos\", async (request, reply) => {\n-    const input = newTodoSchema(bugs).parse(request.body);\n+    const input = newTodoSchema.parse(request.body);\n     const { todo, created } = await store.insert(input, bugs);\n     return reply.status(created ? 201 : 200).send(present(todo));\n   });\ndiff --git a/apps/sample/src/server/flags.ts b/apps/sample/src/server/flags.ts\nindex 057568e..7c2d5ad 100644\n--- a/apps/sample/src/server/flags.ts\n+++ b/apps/sample/src/server/flags.ts\n@@ -21,6 +21,7 @@ export const SEEDED_BUGS: readonly SeededBug[] = [\n     symptom: \"An empty or blank title is not refused at the edge; the database check constraint rejects the row and the API answers 500 instead of 400.\",\n     file: \"src/server/app.ts\",\n     trigger: \"POST /api/todos with { title: \\\"\\\" }\",\n+    fixedBy: \"inc-f42f2815\",\n   },\n   {\n     name: \"date-off-by-one\",\ndiff --git a/apps/sample/test/incident-inc-f42f2815.test.ts b/apps/sample/test/incident-inc-f42f2815.test.ts\nnew file mode 100644\nindex 0000000..7835b55\n--- /dev/null\n+++ b/apps/sample/test/incident-inc-f42f2815.test.ts\n@@ -0,0 +1,27 @@\n+import { afterEach, describe, expect, it } from \"vitest\";\n+import { buildApp, type SampleApp } from \"../src/server/app.js\";\n+\n+// Incident inc-f42f2815, Sentry, 2026-11-15 22:27 UTC: POST /api/todos with { title: \"\" } answered 500\n+// (\"new row for relation todos violates check constraint todos_title_not_blank\") while SAMPLE_BUGS=empty-title.\n+// A blank title must be refused at the edge with a 400 that names the title.\n+\n+let app: SampleApp;\n+afterEach(async () => {\n+  await app?.close();\n+});\n+\n+describe(\"incident inc-f42f2815: an empty title on POST /api/todos\", () => {\n+  it(\"is refused with a 400 that names the title, not a 500 from the database\", async () => {\n+    app = await buildApp({ bugs: new Set([\"empty-title\"]), now: () => new Date(\"2026-11-15T22:27:07.773Z\") });\n+    const res = await app.inject({ method: \"POST\", url: \"/api/todos\", payload: { title: \"\", dueOn: \"2026-11-16\" } });\n+    expect(res.statusCode).toBe(400);\n+    expect(res.json()).toMatchObject({ error: \"validation\" });\n+    expect(JSON.stringify(res.json().issues)).toContain(\"title\");\n+  });\n+\n+  it(\"treats a title of spaces the same way\", async () => {\n+    app = await buildApp({ bugs: new Set([\"empty-title\"]) });\n+    const res = await app.inject({ method: \"POST\", url: \"/api/todos\", payload: { title: \"   \" } });\n+    expect(res.statusCode).toBe(400);\n+  });\n+});\n```\n\nEnd your message with exactly one verdict line: `SIMPLE — <the counts>` or `NOT SIMPLE: <rule number> — <one sentence>`.\n\nReply in plain text, no headings. Do not ask questions; there is nobody to answer them. When you are done, stop.\n"
     },
     "seq": 47,
-    "at": "2026-11-15T22:54:03.918Z"
+    "at": "2026-11-16T20:38:54.902Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "simple",
     "status": "info",
     "summary": "assistant: Counting: 3 files changed, 34 lines added, 10 removed; one new file, the reproduction. Helpers added: none. Types added: none. Dependencies:…",
@@ -666,10 +666,10 @@
       "text": "Counting: 3 files changed, 34 lines added, 10 removed; one new file, the reproduction. Helpers added: none. Types added: none. Dependencies: none. Config: none. The change deletes a branch and a constant, which is the shape rule 6 asks for, and marks the flag entry with fixedBy in one line. app.ts is 108 lines after the change, flags.ts 52, both under 200. Names are the domain's: title, to-do, incident."
     },
     "seq": 48,
-    "at": "2026-11-15T22:54:03.919Z"
+    "at": "2026-11-16T20:38:54.903Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "simple",
     "status": "info",
     "summary": "assistant: SIMPLE — 3 files, +34 −10, 1 new file; 0 helpers, 0 types, 0 dependencies, 0 config changes; longest file touched 108 lines.",
@@ -678,10 +678,10 @@
       "text": "SIMPLE — 3 files, +34 −10, 1 new file; 0 helpers, 0 types, 0 dependencies, 0 config changes; longest file touched 108 lines."
     },
     "seq": 49,
-    "at": "2026-11-15T22:54:03.921Z"
+    "at": "2026-11-16T20:38:54.904Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "simple",
     "status": "ok",
     "summary": "simple: passed",
@@ -695,10 +695,22 @@
       "attempt": 1
     },
     "seq": 50,
-    "at": "2026-11-15T22:54:03.922Z"
+    "at": "2026-11-16T20:38:54.905Z"
   },
   {
-    "runId": "9a449a4b-001f-41da-be75-34b06f9feca0",
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
+    "step": "pr",
+    "status": "info",
+    "summary": "not opened: NIGHTSHIFT_OPEN_PR is not set; nightshift/inc-f42f2815 holds the fix and the body is on this event",
+    "data": {
+      "title": "inc-f42f2815: new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"",
+      "body": "Opened by Nightshift for incident `inc-f42f2815` (sentry), run `6fe1656a-caf6-4638-a624-43669228dd76`. This run was a dry run: the agent's turns were replayed from a recorded transcript and its edits applied as patches; the reproduction, the verification and the gates ran for real on this branch.\n\n## The incident\n\n- What: new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"\n- Where: `POST /api/todos` with body `{\"title\":\"\",\"dueOn\":\"2026-11-16\"}`\n- When: 2026-11-15T22:27:07.773Z, release `sample@0.1.0`, production\n- Flag: `sample.bugs: empty-title`\n\n## The reproduction\n\n`apps/sample/test/incident-inc-f42f2815.test.ts`, run with the flag on, failed on the unfixed code (exit 1) and passes after the fix.\n\n```\n× is refused with a 400 that names the title, not a 500 from the database 2642ms\n× treats a title of spaces the same way 1680ms\nFAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > is refused with a 400 that names the title, not a 500 from the database\nAssertionError: expected 500 to be 400 // Object.is equality\nFAIL  |sample| test/incident-inc-f42f2815.test.ts > incident inc-f42f2815: an empty title on POST /api/todos > treats a title of spaces the same way\nTest Files  1 failed (1)\nTests  2 failed (2)\n```\n\n## The fix\n\n3 files, +34 −10, 1 new, on `nightshift/inc-f42f2815` from `a71b4a9f1a`.\n\n- `apps/sample/src/server/app.ts`\n- `apps/sample/src/server/flags.ts`\n- `apps/sample/test/incident-inc-f42f2815.test.ts`\n\n## Verification\n\n| Command | Result |\n| --- | --- |\n| `pnpm -C apps/sample test` | passed in 30.3s |\n| `SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e` | passed in 8.3s |\n| `pnpm -C apps/sample test:e2e` | passed in 8.2s |\n| `pnpm -r typecheck` | passed in 9.1s |\n| `pnpm lint` | passed in 3.0s |\n\n## The gates\n\nReview: `APPROVED`\n\n- 13: the reproduction's header comment explains the incident; keep that habit.\n- 15: the react skill does not apply (no .tsx touched); simple is judged next.\n\nSimplicity: `SIMPLE — 3 files, +34 −10, 1 new file; 0 helpers, 0 types, 0 dependencies, 0 config changes; longest file touched 108 lines.`\n\nMechanical findings: none.\n\n## Before merging\n\nAuto-merge is off. A person reads the title, the fix and the verification table, and merges.\n\nEvery step of the run, with the agent's messages redacted, is on the Nightshift dashboard under incident `inc-f42f2815`.\n"
+    },
+    "seq": 51,
+    "at": "2026-11-16T20:38:54.908Z"
+  },
+  {
+    "runId": "6fe1656a-caf6-4638-a624-43669228dd76",
     "step": "done",
     "status": "ok",
     "summary": "fixed: 3 files, +34 −10; branch nightshift/inc-f42f2815 is ready for a pull request",
@@ -717,9 +729,15 @@
       "mode": "dry-run",
       "agent": "recorded:empty-title",
       "branch": "nightshift/inc-f42f2815",
-      "worktree": "<worktrees>/9a449a4b-001f-41da-be75-34b06f9feca0"
+      "worktree": "<worktrees>/6fe1656a-caf6-4638-a624-43669228dd76",
+      "pullRequest": {
+        "title": "inc-f42f2815: new row for relation \"todos\" violates check constraint \"todos_title_not_blank\"",
+        "url": null,
+        "number": null,
+        "autoMerge": "off"
+      }
     },
-    "seq": 51,
-    "at": "2026-11-15T22:54:03.923Z"
+    "seq": 52,
+    "at": "2026-11-16T20:38:54.909Z"
   }
 ]

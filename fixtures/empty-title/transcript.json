@@ -28,14 +28,14 @@
         { "role": "tool", "text": "Bash", "tool": { "name": "Bash", "input": "{\"command\":\"SAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts\"}" } },
         { "role": "tool", "text": " ✓ test/incident-inc-f42f2815.test.ts (2 tests) 1.9s\n\n Test Files  1 passed (1)\n      Tests  2 passed (2)" },
         { "role": "tool", "text": "Bash", "tool": { "name": "Bash", "input": "{\"command\":\"pnpm -C apps/sample test\"}" } },
-        { "role": "tool", "text": " Test Files  6 passed (6)\n      Tests  26 passed | 1 skipped (27)" },
+        { "role": "tool", "text": " Test Files  7 passed (7)\n      Tests  25 passed | 1 skipped (26)" },
         { "role": "tool", "text": "Bash", "tool": { "name": "Bash", "input": "{\"command\":\"SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e && pnpm -C apps/sample test:e2e\"}" } },
         { "role": "tool", "text": "  6 passed (7.3s)\n  6 passed (7.0s)" },
         { "role": "tool", "text": "Bash", "tool": { "name": "Bash", "input": "{\"command\":\"pnpm -r typecheck && pnpm lint\"}" } },
         { "role": "tool", "text": "> eslint .\n" }
       ],
       "patch": "fix.patch",
-      "final": "Fixed at the cause. apps/sample/src/server/app.ts: the lenient looseTitle schema and the branch on bugs.has(\"empty-title\") are gone; newTodoSchema is one strict object and the route parses with it. apps/sample/src/server/flags.ts: the empty-title entry is marked fixedBy: \"inc-f42f2815\". The reproduction is untouched.\n\nSAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts\n Tests  2 passed (2)\n\npnpm -C apps/sample test\n Test Files  6 passed (6)\n Tests  26 passed | 1 skipped (27)\n(the skipped one is the empty-title symptom test, which steps aside once the entry is marked fixed)\n\nSAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e\n 6 passed (7.3s)\n\npnpm -C apps/sample test:e2e\n 6 passed (7.0s)\n\npnpm -r typecheck && pnpm lint\n clean\n\nDiff: 3 files, +34 −10, one new file (the reproduction). No dependency, no config, no renamed file."
+      "final": "Fixed at the cause. apps/sample/src/server/app.ts: the lenient looseTitle schema and the branch on bugs.has(\"empty-title\") are gone; newTodoSchema is one strict object and the route parses with it. apps/sample/src/server/flags.ts: the empty-title entry is marked fixedBy: \"inc-f42f2815\". The reproduction is untouched.\n\nSAMPLE_BUGS=empty-title pnpm -C apps/sample exec vitest run test/incident-inc-f42f2815.test.ts\n Tests  2 passed (2)\n\npnpm -C apps/sample test\n Test Files  7 passed (7)\n Tests  25 passed | 1 skipped (26)\n(the skipped one is the empty-title symptom test, which steps aside once the entry is marked fixed)\n\nSAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e\n 6 passed (7.3s)\n\npnpm -C apps/sample test:e2e\n 6 passed (7.0s)\n\npnpm -r typecheck && pnpm lint\n clean\n\nDiff: 3 files, +34 −10, one new file (the reproduction). No dependency, no config, no renamed file."
     },
     "review": {
       "messages": [

@@ -1,0 +1,100 @@
+{
+  "action": "triggered",
+  "installation": {
+    "uuid": "sample-app"
+  },
+  "data": {
+    "event": {
+      "event_id": "aef82d2ac2b2201c43f6e7b6b0e2ce3e",
+      "title": "duplicate key value violates unique constraint \"todos_client_key\"",
+      "message": "duplicate key value violates unique constraint \"todos_client_key\"",
+      "culprit": "POST /api/todos",
+      "level": "error",
+      "platform": "node",
+      "release": "sample@0.1.0",
+      "timestamp": "2026-11-16T20:17:53.310Z",
+      "environment": "production",
+      "tags": [
+        [
+          "environment",
+          "production"
+        ],
+        [
+          "release",
+          "sample@0.1.0"
+        ],
+        [
+          "sample.bugs",
+          "double-submit"
+        ],
+        [
+          "transaction",
+          "POST /api/todos"
+        ]
+      ],
+      "request": {
+        "method": "POST",
+        "url": "/api/todos",
+        "data": {
+          "title": "Book the dentist",
+          "dueOn": null,
+          "clientKey": "3f2c9a4e-7d1b-4c8e-9a0f-6b5d4e3c2a1b"
+        }
+      },
+      "exception": {
+        "values": [
+          {
+            "type": "error",
+            "value": "duplicate key value violates unique constraint \"todos_client_key\"",
+            "stacktrace": {
+              "frames": [
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js",
+                  "function": "<anonymous>",
+                  "lineno": 5,
+                  "colno": 1151,
+                  "in_app": false
+                },
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pglite/dist/chunk-XZUEO4BZ.js",
+                  "function": "q.Ce",
+                  "lineno": 5,
+                  "colno": 1759,
+                  "in_app": false
+                },
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts",
+                  "function": "pe.parse",
+                  "lineno": 104,
+                  "colno": 21,
+                  "in_app": false
+                },
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts",
+                  "function": "pe.tt",
+                  "lineno": 220,
+                  "colno": 16,
+                  "in_app": false
+                },
+                {
+                  "filename": "/app/node_modules/.pnpm/@electric-sql+pglite@0.5.16/node_modules/@electric-sql/pg-protocol/src/parser.ts",
+                  "function": "pe.Oe",
+                  "lineno": 442,
+                  "colno": 11,
+                  "in_app": false
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "web_url": "https://sentry.example/organizations/sample/issues/aef82d2ac2b2201c43f6e7b6b0e2ce3e/"
+    },
+    "triggered_rule": "Every new error"
+  },
+  "actor": {
+    "type": "application",
+    "id": "sentry",
+    "name": "Sentry"
+  }
+}

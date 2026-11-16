@@ -29,6 +29,7 @@ async function call<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  health: () => call<{ ok: boolean; bugs: string[] }>("/health"),
   list: () => call<{ todos: Todo[] }>("/api/todos").then((r) => r.todos),
   add: (input: { title: string; dueOn: string | null; clientKey: string }) => call<Todo>("/api/todos", { method: "POST", body: JSON.stringify(input) }),
   setDone: (id: string, done: boolean) => call<Todo>(`/api/todos/${id}`, { method: "PATCH", body: JSON.stringify({ done }) }),

@@ -1,3 +1,4 @@
+import { loadSkills } from "@nightshift/skills";
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
@@ -15,6 +16,8 @@ export interface AgentAppOptions {
   enqueue: (job: IncidentJob) => Promise<boolean>;
   mode?: "dry-run" | "live";
   sandbox?: boolean;
+  /** How pull requests are opened, or null when they are not. */
+  pullRequests?: { label: string; autoMerge: boolean } | null;
   logger?: boolean;
 }
 
@@ -29,7 +32,9 @@ declare module "fastify" {
 /**
  * The webhook side of Nightshift: two endpoints the error trackers call, each checked against its secret over the raw
  * bytes before the body is even parsed, and a small read API the dashboard uses. The worker is elsewhere; this
- * process only records the incident and queues the run.
+ * process only records the incident and queues the run. The read API answers any origin: it holds nothing a
+ * browser could misuse (no writes, no secrets, the transcripts already redacted), and the dashboard is served from
+ * another port in development and another host in production.
  */
 export async function buildAgentApp(options: AgentAppOptions): Promise<AgentApp> {
   const { store } = options;
@@ -73,11 +78,18 @@ export async function buildAgentApp(options: AgentAppOptions): Promise<AgentApp>
   app.post("/webhooks/sentry", (request, reply) => receive(request, reply, "sentry-hook-signature", options.secrets.sentry, parseSentry));
   app.post("/webhooks/posthog", (request, reply) => receive(request, reply, "x-nightshift-signature", options.secrets.posthog, parsePostHog));
 
+  app.addHook("onSend", async (request, reply) => {
+    if (request.method === "GET") reply.header("access-control-allow-origin", "*");
+  });
+
   app.get("/health", async () => ({
     ok: true,
     mode,
     integrations: { sentry: Boolean(options.secrets.sentry), posthog: Boolean(options.secrets.posthog), agent: mode === "live", sandbox: Boolean(options.sandbox) },
+    pullRequests: options.pullRequests ?? null,
   }));
+
+  app.get("/skills", async () => ({ skills: await loadSkills() }));
 
   app.get("/incidents", async () => {
     const incidents = await store.listIncidents();

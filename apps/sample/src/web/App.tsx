@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { dueLabel } from "../server/dates.js";
 import { api, type Todo } from "./api.js";
+import { captureException, daysLeftDisagrees } from "./invariants.js";
 
 function newDraft() {
   return { title: "", dueOn: "", key: crypto.randomUUID() };
@@ -12,9 +13,11 @@ export function App() {
   // must create it once. The key changes only when the draft is cleared, in the same state update as the title.
   const [draft, setDraft] = useState(() => newDraft());
   const [error, setError] = useState<string | null>(null);
+  const [bugs, setBugs] = useState<string[]>([]);
 
   useEffect(() => {
     api.list().then(setTodos, (e: Error) => setError(e.message));
+    api.health().then((h) => setBugs(h.bugs), () => {});
   }, []);
 
   async function add(event: FormEvent) {
@@ -22,6 +25,8 @@ export function App() {
     setError(null);
     try {
       const todo = await api.add({ title: draft.title, dueOn: draft.dueOn || null, clientKey: draft.key });
+      const disagreement = daysLeftDisagrees(todo.dueOn, todo.daysLeft, new Date());
+      if (disagreement) captureException(new Error(disagreement), { $request_method: "POST", $request_path: "/api/todos", "sample.bugs": bugs.join(",") });
       setTodos((current) => ((current ?? []).some((t) => t.id === todo.id) ? current : [...(current ?? []), todo]));
       setDraft((current) => (current.key === draft.key ? newDraft() : current));
     } catch (e) {

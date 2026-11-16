@@ -17,10 +17,11 @@ import { parseSentry } from "./webhooks/sentry.js";
  *   pnpm -C apps/agent run-fixture empty-title            # dry run: the recorded agent, the default verification
  *   pnpm -C apps/agent run-fixture empty-title --quick    # unit tests only in the verification step
  *   pnpm -C apps/agent run-fixture empty-title --keep     # leave the worktree and branch in place to look at
- *   pnpm -C apps/agent run-fixture empty-title --out fixtures/empty-title   # also write events.json and verification.log there
+ *   pnpm -C apps/agent run-fixture empty-title --out fixtures/empty-title   # also write events.json, verification.log and pr.md there
  *
- * With ANTHROPIC_API_KEY set the live agent runs instead of the transcript. Prints every event as it happens and the
- * outcome at the end; exits 1 when the run fails.
+ * With ANTHROPIC_API_KEY set the live agent runs instead of the transcript. With NIGHTSHIFT_OPEN_PR=1 (and gh signed
+ * in) the branch is pushed and a pull request opened; --pr does the same for one run. Prints every event as it
+ * happens and the outcome at the end; exits 1 when the run fails.
  */
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -28,16 +29,17 @@ const { values, positionals } = parseArgs({
     quick: { type: "boolean", default: false },
     keep: { type: "boolean", default: false },
     "dry-run": { type: "boolean", default: false },
+    pr: { type: "boolean", default: false },
     out: { type: "string" },
   },
 });
 const name = positionals[0];
 if (!name) {
-  console.error("usage: run-fixture <fixture> [--quick] [--keep] [--dry-run]");
+  console.error("usage: run-fixture <fixture> [--quick] [--keep] [--dry-run] [--pr] [--out dir]");
   process.exit(2);
 }
 
-const config = readConfig();
+const config = values.pr ? readConfig({ ...process.env, NIGHTSHIFT_OPEN_PR: "1" }) : readConfig();
 const fixtureDir = join(config.fixturesDir, name);
 const payload: unknown = JSON.parse(await readFile(join(fixtureDir, "webhook.json"), "utf8"));
 const incident = (payload as { action?: string }).action ? parseSentry(payload) : parsePostHog(payload);
@@ -59,6 +61,7 @@ const outcome = await runIncident(incident, {
   verification: values.quick ? ["pnpm -C apps/sample test"] : null,
   secrets: secretsFromEnv(),
   keepWorktree: values.keep,
+  pullRequest: config.pullRequests && { ...config.pullRequests, ...(process.env["GH_TOKEN"] ? { env: { GH_TOKEN: process.env["GH_TOKEN"] } } : {}) },
   log: (line) => console.log(line),
 });
 
@@ -81,11 +84,14 @@ if (values.out) {
     .map((e) => `$ ${e.data["command"]}\n# exit ${e.data["code"]} after ${((e.data["durationMs"] as number) / 1000).toFixed(1)}s\n${String(e.data["output"]).trim()}\n`)
     .join("\n");
   await writeFile(join(out, "verification.log"), neutral(verification));
-  console.log(`\nwrote ${join(out, "events.json")} and ${join(out, "verification.log")}`);
+  const pr = outcome.events.filter((e) => e.step === "pr").at(-1);
+  if (pr && typeof pr.data["body"] === "string") await writeFile(join(out, "pr.md"), neutral(`# ${pr.data["title"]}\n\n${pr.data["body"]}`));
+  console.log(`\nwrote events.json, verification.log${pr ? " and pr.md" : ""} in ${out}`);
 }
 
 console.log(`\n${outcome.status}${outcome.failedStep ? ` at ${outcome.failedStep}: ${outcome.reason}` : ""}`);
 if (outcome.counts) console.log(`diff: ${outcome.counts.files} files, +${outcome.counts.added} −${outcome.counts.removed}`);
+if (outcome.pullRequest) console.log(`pull request ${outcome.pullRequest.url}${outcome.pullRequest.autoMerge === "queued" ? " (merges itself when the checks are green)" : ""}`);
 if (outcome.worktreeDir) console.log(`worktree kept at ${outcome.worktreeDir} on ${outcome.branch}`);
 await db.close();
 process.exit(outcome.status === "fixed" ? 0 : 1);

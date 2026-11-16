@@ -16,6 +16,7 @@ beforeAll(async () => {
   app = await buildAgentApp({
     store: makeStore(db),
     secrets: { sentry: "sentry-secret", posthog: "posthog-secret" },
+    pullRequests: { label: "nightshift", autoMerge: false },
     enqueue: async (job) => {
       queued.push(job);
       return true;
@@ -96,8 +97,18 @@ describe("the read side", () => {
     expect((await app.inject({ method: "GET", url: "/runs/nope" })).statusCode).toBe(404);
   });
 
-  it("answers health with the mode and the integrations that are configured", async () => {
+  it("answers health with the mode, the integrations that are configured and how pull requests are opened", async () => {
     const res = await app.inject({ method: "GET", url: "/health" });
-    expect(res.json()).toEqual({ ok: true, mode: "dry-run", integrations: { sentry: true, posthog: true, agent: false, sandbox: false } });
+    expect(res.json()).toEqual({ ok: true, mode: "dry-run", integrations: { sentry: true, posthog: true, agent: false, sandbox: false }, pullRequests: { label: "nightshift", autoMerge: false } });
+  });
+
+  it("serves the skills as the agent reads them, with the browser allowed to ask from another origin", async () => {
+    const res = await app.inject({ method: "GET", url: "/skills", headers: { origin: "http://localhost:5173" } });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers["access-control-allow-origin"]).toBe("*");
+    const names = res.json().skills.map((s: { name: string }) => s.name);
+    expect(names).toEqual(["verify", "review", "react", "simple", "prompt"]);
+    expect(res.json().skills[1]).toMatchObject({ file: "review.md", gate: true });
+    expect(res.json().skills[1].body).toContain("# Review");
   });
 });

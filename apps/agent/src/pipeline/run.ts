@@ -8,14 +8,15 @@ import type { Incident } from "../incident.js";
 import type { RunEvent, Store } from "../store.js";
 import { checkDiff, parseVerdict, type CheckResult, type Diff, type GateKind, type Verdict } from "./gates.js";
 import { phaseInstruction, type PhaseContext } from "./phases.js";
+import { openPullRequest, pullRequestBody, pullRequestTitle, type PullRequest, type PullRequestInput } from "./pr.js";
 import { buildPrompt, reproPath } from "./prompt.js";
 import { sh, type ShellResult } from "./shell.js";
 import { createWorktree, diffOf, removeWorktree, type RepoLocation } from "./worktree.js";
 
 /**
  * One incident, start to finish: a checkout of its own, the prompt, a failing reproduction, the fix, the verification,
- * the two gates. Every step leaves an event on the run, so the dashboard shows what happened and in what order, and a
- * run that stops leaves the reason behind. The pull request step comes after this file.
+ * the two gates, the pull request. Every step leaves an event on the run, so the dashboard shows what happened and in
+ * what order, and a run that stops leaves the reason behind.
  */
 export interface RunDeps {
   store: Store;
@@ -29,12 +30,23 @@ export interface RunDeps {
   verification?: string[] | null;
   /** Strings to scrub from everything recorded. */
   secrets?: string[];
-  /** Keep the worktree after the run (the pull request step needs it). */
+  /** Keep the worktree after the run, for a person to look at. */
   keepWorktree?: boolean;
+  /** Open a pull request from the branch; null or unset records the title and body and leaves the branch alone. */
+  pullRequest?: PullRequestOptions | null;
   log?: (line: string) => void;
   runId?: string;
   /** Time limit per command, for runaway test suites. */
   commandTimeoutMs?: number;
+}
+
+export interface PullRequestOptions {
+  label: string;
+  autoMerge: boolean;
+  author: { name: string; email: string };
+  env?: Record<string, string>;
+  /** The function that talks to git and gh; the tests put a stand-in here so nothing is pushed. */
+  open?: typeof openPullRequest;
 }
 
 export interface RunOutcome {
@@ -47,6 +59,7 @@ export interface RunOutcome {
   branch: string | null;
   diff: Diff | null;
   counts: CheckResult["counts"] | null;
+  pullRequest: PullRequest | null;
   events: RunEvent[];
 }
 
@@ -217,18 +230,38 @@ export async function runIncident(incident: Incident, deps: RunDeps): Promise<Ru
       await verify();
     }
 
-    const summary = { counts, files: diff!.files.map((f) => f.path), mode: deps.mode, agent: deps.agent.name, branch, worktree: worktreeDir };
+    // 7. The pull request, written from the run's own record.
+    await store.updateRun(runId, { step: "pr" });
+    const files = diff!.files.map((f) => f.path);
+    const prInput: PullRequestInput = { incident, runId, mode: deps.mode, agentName: deps.agent.name, branch, base: wt.base, counts: counts!, files, events: [...events], autoMerge: deps.pullRequest?.autoMerge ?? false };
+    const title = pullRequestTitle(incident);
+    const body = pullRequestBody(prInput);
+    let pr: PullRequest | null = null;
+    if (deps.pullRequest) {
+      const { label, author, env, open } = deps.pullRequest;
+      await record("pr", "started", `gh pr create from ${branch}`, { title });
+      try {
+        pr = await (open ?? openPullRequest)(prInput, { worktreeDir, label, author, ...(env ? { env } : {}) });
+      } catch (error) {
+        throw new StepFailed("pr", error instanceof Error ? error.message : String(error));
+      }
+      await record("pr", "ok", `opened ${pr.url}${pr.autoMerge === "queued" ? "; it merges itself when the checks are green" : ""}`, { title, body, url: pr.url, number: pr.number, autoMerge: pr.autoMerge, commit: pr.commit, label });
+    } else {
+      await record("pr", "info", `not opened: NIGHTSHIFT_OPEN_PR is not set; ${branch} holds the fix and the body is on this event`, { title, body });
+    }
+
+    const summary = { counts, files, mode: deps.mode, agent: deps.agent.name, branch, worktree: worktreeDir, pullRequest: { title, url: pr?.url ?? null, number: pr?.number ?? null, autoMerge: pr?.autoMerge ?? "off" } };
     await store.updateRun(runId, { status: "fixed", step: "done", finished: true, summary });
-    await record("done", "ok", `fixed: ${counts!.files} files, +${counts!.added} −${counts!.removed}; branch ${branch} is ready for a pull request`, summary);
+    await record("done", "ok", `fixed: ${counts!.files} files, +${counts!.added} −${counts!.removed}; ${pr ? `pull request #${pr.number} opened` : `branch ${branch} is ready for a pull request`}`, summary);
     if (!deps.keepWorktree) await removeWorktree(deps.repo.repoRoot, worktreeDir);
-    return { runId, status: "fixed", failedStep: null, reason: null, worktreeDir: deps.keepWorktree ? worktreeDir : null, branch, diff, counts, events };
+    return { runId, status: "fixed", failedStep: null, reason: null, worktreeDir: deps.keepWorktree ? worktreeDir : null, branch, diff, counts, pullRequest: pr, events };
   } catch (error) {
     const step = error instanceof StepFailed ? error.step : ((await store.getRun(runId))?.step ?? "unknown");
     const reason = error instanceof Error ? error.message : String(error);
     await record(step, "failed", reason, { error: reason });
     await store.updateRun(runId, { status: "failed", finished: true, summary: { failedStep: step, reason: scrub(reason), mode: deps.mode, agent: deps.agent.name } });
     if (!deps.keepWorktree) await removeWorktree(deps.repo.repoRoot, worktreeDir).catch(() => {});
-    return { runId, status: "failed", failedStep: step, reason: scrub(reason), worktreeDir: deps.keepWorktree ? worktreeDir : null, branch, diff, counts, events };
+    return { runId, status: "failed", failedStep: step, reason: scrub(reason), worktreeDir: deps.keepWorktree ? worktreeDir : null, branch, diff, counts, pullRequest: null, events };
   }
 }
 

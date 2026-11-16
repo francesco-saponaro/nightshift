@@ -1,0 +1,181 @@
+{
+  "recorded": false,
+  "note": "Authored to match the code paths exactly, not recorded from a live session: no API key was available when this fixture was made. The webhook payload is real (captured from the sample app's reporter with SAMPLE_BUGS=double-submit and two requests sent at once), the prompt is the builder's output, the patches are what the agent's edits amount to, and everything downstream of this transcript (the reproduction run, the fix check, the verification, the gates) runs for real against them.",
+  "agent": "claude-agent-sdk",
+  "phases": {
+    "reproduce": {
+      "messages": [
+        {
+          "role": "tool",
+          "text": "Read",
+          "tool": {
+            "name": "Read",
+            "input": "{\"file_path\": \"apps/sample/src/server/flags.ts\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "  {\n    name: \"double-submit\",\n    symptom: \"Creating a to-do checks for the client key and then inserts, in two steps; two requests with the same key at the same time both pass the check and the second insert fails on the unique index with a 500.\",\n    file: \"src/server/store.ts\",\n    trigger: \"Two POST /api/todos with the same clientKey at once (a double click on Add)\",\n  },"
+        },
+        {
+          "role": "tool",
+          "text": "Read",
+          "tool": {
+            "name": "Read",
+            "input": "{\"file_path\": \"apps/sample/src/server/store.ts\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "    async insert(input, bugs = new Set()) {\n      const id = randomUUID();\n      const params = [id, input.title, input.dueOn ?? null, input.clientKey ?? null];\n      if (input.clientKey && bugs.has(\"double-submit\")) {\n        // Check, then insert. Two requests with the same key at the same time both pass the check.\n        const existing = await one(`SELECT ${COLUMNS} FROM todos WHERE client_key = $1`, [input.clientKey]);\n        if (existing) return { todo: existing, created: false };\n        const todo = await one(`INSERT INTO todos (id, title, due_on, client_key) VALUES ($1, $2, $3::date, $4) RETURNING ${COLUMNS}`, params);\n        return { todo: todo!, created: true };\n      }\n      const inserted = await one(\n        `INSERT INTO todos (id, title, due_on, client_key) VALUES ($1, $2, $3::date, $4)\n         ON CONFLICT (client_key) WHERE client_key IS NOT NULL DO NOTHING RETURNING ${COLUMNS}`,\n        params,\n      );\n      ..."
+        },
+        {
+          "role": "tool",
+          "text": "Read",
+          "tool": {
+            "name": "Read",
+            "input": "{\"file_path\": \"apps/sample/test/api.test.ts\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "  it(\"creates one to-do when the same client key is sent twice at once\", async () => {\n    const { app, reported } = await make();\n    const payload = { title: \"Book the dentist\", clientKey: \"7b1a0d6e-2f1c-4d0a-9c1e-5d3c2b1a0f9e\" };\n    const [a, b] = await Promise.all([\n      app.inject({ method: \"POST\", url: \"/api/todos\", payload }),\n      app.inject({ method: \"POST\", url: \"/api/todos\", payload }),\n    ]);\n    expect([a.statusCode, b.statusCode].sort()).toEqual([200, 201]);\n  ..."
+        },
+        {
+          "role": "assistant",
+          "text": "The incident is the unique index todos_client_key firing on the second of two POST /api/todos that arrived together with the same clientKey. flags.ts points at store.ts: with double-submit on, insert() selects by the key and then inserts, so two requests that both find nothing both insert, and the second one hits the index and becomes a 500 through the error handler. The existing test for the double submit runs with no flags, so it never saw this path. The reproduction builds the app with bugs: new Set([\"double-submit\"]), sends the two requests with Promise.all and asserts one 201 and one 200 with the same id, nothing reported; a second test checks that a later repeat of the key is still answered with the existing to-do."
+        },
+        {
+          "role": "tool",
+          "text": "Write",
+          "tool": {
+            "name": "Write",
+            "input": "{\"file_path\": \"apps/sample/test/incident-inc-aef82d2a.test.ts\", \"content\": \"import { afterEach, describe, expect, it } from \\\"vitest\\\";\\nimport { buildApp, type SampleApp } from \\\"../src/server/app.js\\\";\\nimport type { ReportedError } from \\\"../src/server/report.js\\\";\\n\\n// Incident inc-aef82d2a, Sentry, 2026-11-16 20:17 UTC: two POST /api/todos with the same clientKey arrived at once ...\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "Bash",
+          "tool": {
+            "name": "Bash",
+            "input": "{\"command\": \"SAMPLE_BUGS=double-submit pnpm -C apps/sample exec vitest run test/incident-inc-aef82d2a.test.ts\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": " ❯ test/incident-inc-aef82d2a.test.ts (2 tests | 1 failed)\n   × incident inc-aef82d2a: the same client key twice at once > creates one to-do and answers both requests with it, nothing reported\n     → expected [ 201, 500 ] to deeply equal [ 200, 201 ]\n   ✓ incident inc-aef82d2a: the same client key twice at once > still answers the existing to-do when the same key arrives again later\n\n Test Files  1 failed (1)\n      Tests  1 failed | 1 passed (2)"
+        }
+      ],
+      "patch": "reproduce.patch",
+      "final": "Wrote apps/sample/test/incident-inc-aef82d2a.test.ts: two tests that build the app with the double-submit flag on; the first sends the recorded request twice at once and asserts a 201 and a 200 with the same id and nothing reported, the second sends it twice in a row. Nothing else changed.\n\nSAMPLE_BUGS=double-submit pnpm -C apps/sample exec vitest run test/incident-inc-aef82d2a.test.ts\n\n ❯ test/incident-inc-aef82d2a.test.ts (2 tests | 1 failed)\n   × creates one to-do and answers both requests with it, nothing reported\n     → expected [ 201, 500 ] to deeply equal [ 200, 201 ]\n   ✓ still answers the existing to-do when the same key arrives again later\n Test Files  1 failed (1)\n      Tests  1 failed | 1 passed (2)\n\nThe first fails with the incident's symptom: one of the two requests is a 500. The second passes on the current code because two requests in a row never race; it is there so the fix is shown to keep the existing answer."
+    },
+    "fix": {
+      "messages": [
+        {
+          "role": "assistant",
+          "text": "The cause is the check-then-insert branch behind the flag. The fix deletes it, so the one statement with ON CONFLICT ... DO NOTHING RETURNING followed by one select is the only path; the database decides who was first. The bugs parameter had no other reader, so it goes from the implementation and the Store interface, and the route in app.ts stops passing it. The flag's entry in flags.ts gets fixedBy: \"inc-aef82d2a\" so SAMPLE_BUGS=double-submit is still accepted and now changes nothing. The symptom test in api.test.ts steps aside once the entry is marked, so no test is touched. No mutex, no retry, no debounce in the front."
+        },
+        {
+          "role": "tool",
+          "text": "Edit",
+          "tool": {
+            "name": "Edit",
+            "input": "{\"file_path\": \"apps/sample/src/server/store.ts\", \"old_string\": \"  insert(input: NewTodo, bugs?: ReadonlySet<string>): Promise<{ todo: TodoRow; created: boolean }>;\", \"new_string\": \"  insert(input: NewTodo): Promise<{ todo: TodoRow; created: boolean }>;\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "Edit",
+          "tool": {
+            "name": "Edit",
+            "input": "{\"file_path\": \"apps/sample/src/server/store.ts\", \"old_string\": \"    async insert(input, bugs = new Set()) {\\n      const id = randomUUID();\\n      const params = [id, input.title, input.dueOn ?? null, input.clientKey ?? null];\\n      if (input.clientKey && bugs.has(\\\"double-submit\\\")) {\\n        // Check, then insert. Two requests with the same key at the same time both pass the check.\\n        const existing = await one(`SELECT ${COLUMNS} FROM todos WHERE client_key = $1`, [input.clientKey]);\\n        if (existing) return { todo: existing, created: false };\\n        const todo = await one(`INSERT INTO todos (id, title, due_on, client_key) VALUES ($1, $2, $3::date, $4) RETURNING ${COLUMNS}`, params);\\n        return { todo: todo!, created: true };\\n      }\\n      const inserted\", \"new_string\": \"    async insert(input) {\\n      const id = randomUUID();\\n      const params = [id, input.title, input.dueOn ?? null, input.clientKey ?? null];\\n      const inserted\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "Edit",
+          "tool": {
+            "name": "Edit",
+            "input": "{\"file_path\": \"apps/sample/src/server/app.ts\", \"old_string\": \"    const { todo, created } = await store.insert(input, bugs);\", \"new_string\": \"    const { todo, created } = await store.insert(input);\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "Edit",
+          "tool": {
+            "name": "Edit",
+            "input": "{\"file_path\": \"apps/sample/src/server/flags.ts\", \"old_string\": \"    trigger: \\\"Two POST /api/todos with the same clientKey at once (a double click on Add)\\\",\\n  },\", \"new_string\": \"    trigger: \\\"Two POST /api/todos with the same clientKey at once (a double click on Add)\\\",\\n    fixedBy: \\\"inc-aef82d2a\\\",\\n  },\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "Bash",
+          "tool": {
+            "name": "Bash",
+            "input": "{\"command\": \"SAMPLE_BUGS=double-submit pnpm -C apps/sample exec vitest run test/incident-inc-aef82d2a.test.ts\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": " ✓ test/incident-inc-aef82d2a.test.ts (2 tests) 2.4s\n\n Test Files  1 passed (1)\n      Tests  2 passed (2)"
+        },
+        {
+          "role": "tool",
+          "text": "Bash",
+          "tool": {
+            "name": "Bash",
+            "input": "{\"command\": \"pnpm -C apps/sample test\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": " Test Files  7 passed (7)\n      Tests  25 passed | 1 skipped (26)"
+        },
+        {
+          "role": "tool",
+          "text": "Bash",
+          "tool": {
+            "name": "Bash",
+            "input": "{\"command\": \"SAMPLE_BUGS=double-submit pnpm -C apps/sample test:e2e && pnpm -C apps/sample test:e2e\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "  6 passed (7.6s)\n  6 passed (7.2s)"
+        },
+        {
+          "role": "tool",
+          "text": "Bash",
+          "tool": {
+            "name": "Bash",
+            "input": "{\"command\": \"pnpm -r typecheck && pnpm lint\"}"
+          }
+        },
+        {
+          "role": "tool",
+          "text": "> eslint .\n"
+        }
+      ],
+      "patch": "fix.patch",
+      "final": "Fixed at the cause. apps/sample/src/server/store.ts: the check-then-insert branch is gone, insert() is one statement with ON CONFLICT ... DO NOTHING RETURNING and one select, and the bugs argument it was the only reader of is gone from the method and the Store interface. apps/sample/src/server/app.ts: the route calls store.insert(input). apps/sample/src/server/flags.ts: the double-submit entry is marked fixedBy: \"inc-aef82d2a\". The reproduction is untouched.\n\nSAMPLE_BUGS=double-submit pnpm -C apps/sample exec vitest run test/incident-inc-aef82d2a.test.ts\n Tests  2 passed (2)\n\npnpm -C apps/sample test\n Test Files  7 passed (7)\n Tests  25 passed | 1 skipped (26)\n(the skipped one is the double-submit symptom test, which steps aside once the entry is marked fixed)\n\nSAMPLE_BUGS=double-submit pnpm -C apps/sample test:e2e\n 6 passed (7.6s)\n\npnpm -C apps/sample test:e2e\n 6 passed (7.2s)\n\npnpm -r typecheck && pnpm lint\n clean\n\nDiff: 4 files, +40 −10, one new file (the reproduction). No dependency, no config, no renamed file."
+    },
+    "review": {
+      "messages": [
+        {
+          "role": "assistant",
+          "text": "Reading the goal, then the diff, then store.ts, app.ts and flags.ts in full.\n\n1. Reproduction exists and failed first: yes, test/incident-inc-aef82d2a.test.ts, sets bugs: new Set([\"double-submit\"]), failed with expected [ 201, 500 ] to deeply equal [ 200, 201 ] before and passes after.\n2. Fix at the cause: yes, the operation is one statement the database serialises; nothing retries, nothing catches the duplicate key.\n3. Nothing the goal did not ask for: yes; the interface and the route lose the argument whose only reader was the deleted branch, and the diff explains it.\n4. No dependency: yes.\n5. No test weakened: yes, no test file changed other than the new one.\n6. Errors still reach the tracker: yes, the error handler and the reporter are untouched.\n7. Input validated at the edge: yes, the schema still requires a UUID client key.\n8. Database stays the last line of defence: yes, the partial unique index on client_key is still there and still the arbiter.\n9. Concurrency is handled with the database: yes, ON CONFLICT on the index; no lock, no seen set, no sleep.\n10. Secrets and personal data: yes, the test uses a made-up title and a made-up key in the recorded shape.\n11. Every scenario and test passes with the flag on and off: yes, the outputs are in the fix message.\n\nAdvisory: 13, the header comment explains the incident and why the second test exists; 14, not applicable."
+        }
+      ],
+      "final": "APPROVED\n- 13: the reproduction's header comment says why the second test passes before the fix; keep that habit.\n- 15: the react skill does not apply (no .tsx touched); simple is judged next."
+    },
+    "simple": {
+      "messages": [
+        {
+          "role": "assistant",
+          "text": "Counting: 4 files changed, 40 lines added, 10 removed; one new file, the reproduction. Helpers added: none. Types added: none. Dependencies: none. Config: none. The change deletes a branch and a parameter (rule 6) and marks the flag entry with fixedBy in one line; the one-line change in app.ts follows from the parameter going. store.ts is 135 lines after the change, app.ts 112, flags.ts 52. Names are the domain's: client key, to-do, incident."
+        }
+      ],
+      "final": "SIMPLE — 4 files, +40 −10, 1 new file; 0 helpers, 0 types, 0 dependencies, 0 config changes; longest file touched 135 lines."
+    }
+  }
+}

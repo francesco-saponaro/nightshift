@@ -1,0 +1,40 @@
+{
+  "event": "$exception",
+  "uuid": "ec6c6789-cc93-4bdb-9c83-b999101d308c",
+  "distinct_id": "019a1f2b-d4c3e8a11256",
+  "timestamp": "2026-11-16T20:21:49.259Z",
+  "properties": {
+    "$exception_list": [
+      {
+        "type": "Error",
+        "value": "daysLeft for 2026-11-17 is 0 but the calendar says 1 at 2026-11-16T20:21:49.245Z",
+        "mechanism": {
+          "handled": true,
+          "type": "generic"
+        },
+        "stacktrace": {
+          "type": "raw",
+          "frames": [
+            {
+              "filename": "/assets/index-Dtx7lnFQ.js",
+              "function": "c",
+              "lineno": 9,
+              "colno": 52783,
+              "in_app": true
+            }
+          ]
+        }
+      }
+    ],
+    "$exception_fingerprint": "1f8c42db2ce53859a71697299c4c9d31",
+    "$current_url": "http://127.0.0.1:3903/",
+    "$lib": "web",
+    "$browser": "Chrome",
+    "$os": "Linux",
+    "$request_method": "POST",
+    "$request_path": "/api/todos",
+    "sample.bugs": "date-off-by-one",
+    "$environment": "production",
+    "release": "sample@0.1.0"
+  }
+}

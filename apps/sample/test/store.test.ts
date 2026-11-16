@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { SEEDED_BUGS } from "../src/server/flags.js";
 import { openStore, type Store } from "../src/server/store.js";
 
-const fixed = (name: string) => Boolean(SEEDED_BUGS.find((b) => b.name === name)?.fixedBy);
+// The double-submit symptom is documented in api.test.ts, through the app, so that this file still compiles once the
+// fix has removed the bug's branch and its argument.
 
 let store: Store;
 afterEach(async () => {
@@ -18,28 +18,6 @@ describe("the store under a double submit", () => {
     expect([a.created, b.created].sort()).toEqual([false, true]);
     expect(a.todo.id).toBe(b.todo.id);
     expect(await store.list()).toHaveLength(1);
-  });
-
-  it.skipIf(fixed("double-submit"))("with the double-submit bug on, the second insert fails on the unique index", async () => {
-    store = await openStore();
-    const bugs = new Set(["double-submit"]);
-    const results = await Promise.allSettled([
-      store.insert({ title: "Book the dentist", clientKey: key }, bugs),
-      store.insert({ title: "Book the dentist", clientKey: key }, bugs),
-    ]);
-    const statuses = results.map((r) => r.status).sort();
-    expect(statuses).toEqual(["fulfilled", "rejected"]);
-    const rejected = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
-    expect(String(rejected.reason)).toMatch(/duplicate key value violates unique constraint "todos_client_key"/);
-  });
-
-  it.skipIf(fixed("double-submit"))("with the bug on, a second submit that arrives later is still answered with the existing row", async () => {
-    store = await openStore();
-    const bugs = new Set(["double-submit"]);
-    const first = await store.insert({ title: "x", clientKey: key }, bugs);
-    const second = await store.insert({ title: "x", clientKey: key }, bugs);
-    expect(second.created).toBe(false);
-    expect(second.todo.id).toBe(first.todo.id);
   });
 });
 

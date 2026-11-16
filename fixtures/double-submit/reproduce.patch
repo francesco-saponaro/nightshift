@@ -1,0 +1,42 @@
+diff --git a/apps/sample/test/incident-inc-aef82d2a.test.ts b/apps/sample/test/incident-inc-aef82d2a.test.ts
+new file mode 100644
+index 0000000..6bf4995
+--- /dev/null
++++ b/apps/sample/test/incident-inc-aef82d2a.test.ts
+@@ -0,0 +1,36 @@
++import { afterEach, describe, expect, it } from "vitest";
++import { buildApp, type SampleApp } from "../src/server/app.js";
++import type { ReportedError } from "../src/server/report.js";
++
++// Incident inc-aef82d2a, Sentry, 2026-11-16 20:17 UTC: two POST /api/todos with the same clientKey arrived at once
++// (a double click on Add) while SAMPLE_BUGS=double-submit, and the second answered 500 with
++// "duplicate key value violates unique constraint todos_client_key". Both must be answered with the one to-do.
++
++let app: SampleApp;
++const reported: ReportedError[] = [];
++afterEach(async () => {
++  await app?.close();
++  reported.length = 0;
++});
++
++const payload = { title: "Book the dentist", clientKey: "3f2c9a4e-7d1b-4c8e-9a0f-6b5d4e3c2a1b" };
++const post = () => app.inject({ method: "POST", url: "/api/todos", payload });
++
++describe("incident inc-aef82d2a: the same client key twice at once", () => {
++  it("creates one to-do and answers both requests with it, nothing reported", async () => {
++    app = await buildApp({ bugs: new Set(["double-submit"]), report: (e) => void reported.push(e) });
++    const [a, b] = await Promise.all([post(), post()]);
++    expect([a.statusCode, b.statusCode].sort()).toEqual([200, 201]);
++    expect(a.json().id).toBe(b.json().id);
++    expect((await app.inject({ method: "GET", url: "/api/todos" })).json().todos).toHaveLength(1);
++    expect(reported).toHaveLength(0);
++  });
++
++  it("still answers the existing to-do when the same key arrives again later", async () => {
++    app = await buildApp({ bugs: new Set(["double-submit"]) });
++    const first = await post();
++    const second = await post();
++    expect([first.statusCode, second.statusCode]).toEqual([201, 200]);
++    expect(second.json().id).toBe(first.json().id);
++  });
++});

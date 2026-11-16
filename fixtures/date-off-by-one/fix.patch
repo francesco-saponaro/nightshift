@@ -1,0 +1,43 @@
+diff --git a/apps/sample/src/server/app.ts b/apps/sample/src/server/app.ts
+index 949f304..064d806 100644
+--- a/apps/sample/src/server/app.ts
++++ b/apps/sample/src/server/app.ts
+@@ -53,7 +53,7 @@ export async function buildApp(options: SampleAppOptions = {}): Promise<SampleAp
+   const store: Store = await openStore(options.databaseUrl);
+   const app = Fastify({ logger: options.logger ?? false });
+ 
+-  const present = (row: TodoRow): Todo => ({ ...row, daysLeft: row.dueOn ? daysUntil(row.dueOn, now(), bugs) : null });
++  const present = (row: TodoRow): Todo => ({ ...row, daysLeft: row.dueOn ? daysUntil(row.dueOn, now()) : null });
+ 
+   app.addHook("onClose", async () => {
+     await store.close();
+diff --git a/apps/sample/src/server/dates.ts b/apps/sample/src/server/dates.ts
+index 195e609..6366496 100644
+--- a/apps/sample/src/server/dates.ts
++++ b/apps/sample/src/server/dates.ts
+@@ -5,12 +5,8 @@ function utcMidnight(date: Date): number {
+ }
+ 
+ /** Whole calendar days from today to the due date: 0 is today, 1 is tomorrow, -1 was yesterday. */
+-export function daysUntil(dueOn: string, now: Date, bugs: ReadonlySet<string> = new Set()): number {
++export function daysUntil(dueOn: string, now: Date): number {
+   const due = Date.parse(`${dueOn}T00:00:00Z`);
+-  if (bugs.has("date-off-by-one")) {
+-    // Counts from "now" instead of from the start of today, so after midday the rounding drops a day.
+-    return Math.round((due - now.getTime()) / DAY);
+-  }
+   return Math.round((due - utcMidnight(now)) / DAY);
+ }
+ 
+diff --git a/apps/sample/src/server/flags.ts b/apps/sample/src/server/flags.ts
+index 057568e..a1d1a25 100644
+--- a/apps/sample/src/server/flags.ts
++++ b/apps/sample/src/server/flags.ts
+@@ -27,6 +27,7 @@ export const SEEDED_BUGS: readonly SeededBug[] = [
+     symptom: "The days left until a due date are counted from the current time instead of from the start of the day, so after midday a to-do due tomorrow says it is due today, and one due today says it is overdue.",
+     file: "src/server/dates.ts",
+     trigger: "POST /api/todos with a dueOn of tomorrow, after 12:00 UTC",
++    fixedBy: "inc-ec6c6789",
+   },
+   {
+     name: "double-submit",

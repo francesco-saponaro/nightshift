@@ -1,0 +1,56 @@
+diff --git a/apps/sample/src/server/app.ts b/apps/sample/src/server/app.ts
+index 949f304..697c996 100644
+--- a/apps/sample/src/server/app.ts
++++ b/apps/sample/src/server/app.ts
+@@ -89,7 +89,7 @@ export async function buildApp(options: SampleAppOptions = {}): Promise<SampleAp
+ 
+   app.post("/api/todos", async (request, reply) => {
+     const input = newTodoSchema(bugs).parse(request.body);
+-    const { todo, created } = await store.insert(input, bugs);
++    const { todo, created } = await store.insert(input);
+     return reply.status(created ? 201 : 200).send(present(todo));
+   });
+ 
+diff --git a/apps/sample/src/server/flags.ts b/apps/sample/src/server/flags.ts
+index 057568e..67daa90 100644
+--- a/apps/sample/src/server/flags.ts
++++ b/apps/sample/src/server/flags.ts
+@@ -33,6 +33,7 @@ export const SEEDED_BUGS: readonly SeededBug[] = [
+     symptom: "Creating a to-do checks for the client key and then inserts, in two steps; two requests with the same key at the same time both pass the check and the second insert fails on the unique index with a 500.",
+     file: "src/server/store.ts",
+     trigger: "Two POST /api/todos with the same clientKey at once (a double click on Add)",
++    fixedBy: "inc-aef82d2a",
+   },
+ ];
+ 
+diff --git a/apps/sample/src/server/store.ts b/apps/sample/src/server/store.ts
+index abb8b03..275874f 100644
+--- a/apps/sample/src/server/store.ts
++++ b/apps/sample/src/server/store.ts
+@@ -24,7 +24,7 @@ export interface TodoPatch {
+ }
+ 
+ export interface Store {
+-  insert(input: NewTodo, bugs?: ReadonlySet<string>): Promise<{ todo: TodoRow; created: boolean }>;
++  insert(input: NewTodo): Promise<{ todo: TodoRow; created: boolean }>;
+   list(): Promise<TodoRow[]>;
+   get(id: string): Promise<TodoRow | null>;
+   update(id: string, patch: TodoPatch): Promise<TodoRow | null>;
+@@ -91,16 +91,9 @@ export async function openStore(url?: string): Promise<Store> {
+   }
+ 
+   return {
+-    async insert(input, bugs = new Set()) {
++    async insert(input) {
+       const id = randomUUID();
+       const params = [id, input.title, input.dueOn ?? null, input.clientKey ?? null];
+-      if (input.clientKey && bugs.has("double-submit")) {
+-        // Check, then insert. Two requests with the same key at the same time both pass the check.
+-        const existing = await one(`SELECT ${COLUMNS} FROM todos WHERE client_key = $1`, [input.clientKey]);
+-        if (existing) return { todo: existing, created: false };
+-        const todo = await one(`INSERT INTO todos (id, title, due_on, client_key) VALUES ($1, $2, $3::date, $4) RETURNING ${COLUMNS}`, params);
+-        return { todo: todo!, created: true };
+-      }
+       const inserted = await one(
+         `INSERT INTO todos (id, title, due_on, client_key) VALUES ($1, $2, $3::date, $4)
+          ON CONFLICT (client_key) WHERE client_key IS NOT NULL DO NOTHING RETURNING ${COLUMNS}`,

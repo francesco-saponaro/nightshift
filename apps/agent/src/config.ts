@@ -9,6 +9,8 @@ export interface Config {
   sentrySecret: string;
   posthogSecret: string;
   hasAgentKey: boolean;
+  /** How pull requests are opened; null leaves the branch in the worktree and records the body on the run. */
+  pullRequests: { label: string; autoMerge: boolean; author: { name: string; email: string } } | null;
   sandboxUrl: string | undefined;
   install: string;
   worktreesDir: string;
@@ -16,6 +18,8 @@ export interface Config {
   /** The folder with pnpm-workspace.yaml, apps/ and fixtures/: the app Nightshift looks after lives under it. */
   projectRoot: string;
 }
+
+const on = (value: string | undefined) => value !== undefined && value !== "" && value !== "0" && value.toLowerCase() !== "false";
 
 export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const here = dirname(fileURLToPath(import.meta.url));
@@ -26,6 +30,13 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     sentrySecret: env["SENTRY_CLIENT_SECRET"] ?? "",
     posthogSecret: env["POSTHOG_WEBHOOK_SECRET"] ?? "",
     hasAgentKey: Boolean(env["ANTHROPIC_API_KEY"]),
+    pullRequests: on(env["NIGHTSHIFT_OPEN_PR"])
+      ? {
+          label: env["NIGHTSHIFT_PR_LABEL"] || "nightshift",
+          autoMerge: on(env["NIGHTSHIFT_AUTO_MERGE"]),
+          author: { name: env["NIGHTSHIFT_GIT_NAME"] || "Nightshift", email: env["NIGHTSHIFT_GIT_EMAIL"] || "nightshift@localhost" },
+        }
+      : null,
     sandboxUrl: env["NIGHTSHIFT_SANDBOX_URL"] || undefined,
     install: env["NIGHTSHIFT_INSTALL"] ?? "pnpm install --frozen-lockfile --prefer-offline",
     worktreesDir: env["NIGHTSHIFT_WORKTREES"] ?? join(here, "..", "worktrees"),

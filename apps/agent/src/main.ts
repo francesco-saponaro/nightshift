@@ -25,6 +25,8 @@ const fixtures = (await readdir(config.fixturesDir, { withFileTypes: true })).fi
 if (!config.sentrySecret && !config.posthogSecret) {
   console.warn("Neither SENTRY_CLIENT_SECRET nor POSTHOG_WEBHOOK_SECRET is set: both webhook endpoints will refuse every delivery.");
 }
+// gh reads its token from GH_TOKEN; it is passed to that one child process and never written anywhere.
+const ghEnv = process.env["GH_TOKEN"] ? { GH_TOKEN: process.env["GH_TOKEN"] } : {};
 
 const app = await buildAgentApp({
   store,
@@ -32,6 +34,7 @@ const app = await buildAgentApp({
   enqueue: (job) => enqueueIncident(boss, job),
   mode,
   sandbox: Boolean(config.sandboxUrl),
+  pullRequests: config.pullRequests ? { label: config.pullRequests.label, autoMerge: config.pullRequests.autoMerge } : null,
   logger: true,
 });
 
@@ -51,7 +54,9 @@ await workIncidents(boss, async (job) => {
     worktreesDir: config.worktreesDir,
     install: config.install,
     secrets: secretsFromEnv(),
-    keepWorktree: true,
+    // Once the branch is pushed the worktree has done its job; without a pull request it stays for a person to look at.
+    keepWorktree: !config.pullRequests,
+    pullRequest: config.pullRequests && { ...config.pullRequests, env: ghEnv },
     runId: job.runId,
     log: (line) => app.log.info({ runId: job.runId }, line),
   });
@@ -59,7 +64,7 @@ await workIncidents(boss, async (job) => {
 });
 
 await app.listen({ port: config.port, host: config.host });
-app.log.info({ mode, database: db.kind, repo, worktrees: config.worktreesDir, fixtures }, "nightshift up");
+app.log.info({ mode, database: db.kind, repo, worktrees: config.worktreesDir, fixtures, pullRequests: config.pullRequests ? { label: config.pullRequests.label, autoMerge: config.pullRequests.autoMerge } : "off" }, "nightshift up");
 
 const stop = async () => {
   await boss.stop({ graceful: true, timeout: 5000 });
