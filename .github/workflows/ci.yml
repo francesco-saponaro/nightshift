@@ -26,3 +26,24 @@ jobs:
       - run: pnpm -r typecheck
       - run: pnpm test
       - run: pnpm -r build
+      - run: VITE_DEMO=1 pnpm -C apps/dashboard build
+
+  scenarios:
+    name: Verification scenarios in a browser
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -C apps/sample exec playwright install --with-deps chromium
+      - name: Bugs off, every scenario passes
+        run: pnpm -C apps/sample test:e2e
+      - name: One bug on, its scenario fails
+        run: |
+          if SAMPLE_BUGS=empty-title pnpm -C apps/sample test:e2e; then
+            echo "the empty-title scenario should have failed with the bug on"; exit 1
+          fi

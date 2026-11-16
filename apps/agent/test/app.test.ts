@@ -80,6 +80,24 @@ describe("POST /webhooks/posthog", () => {
   });
 });
 
+describe("the door", () => {
+  it("rate-limits the webhooks per address and says so, before the signature is checked", async () => {
+    const limited = await buildAgentApp({ store: makeStore(db), secrets: { sentry: "s", posthog: "p" }, enqueue: async () => true, rateLimit: { max: 3, windowMs: 60_000 } });
+    await limited.ready();
+    const codes: number[] = [];
+    for (let i = 0; i < 5; i++) codes.push((await limited.inject({ method: "POST", url: "/webhooks/sentry", payload: "{}", headers: { "content-type": "application/json" } })).statusCode);
+    expect(codes).toEqual([401, 401, 401, 429, 429]);
+    expect((await limited.inject({ method: "GET", url: "/health" })).statusCode).toBe(200);
+    await limited.close();
+  });
+
+  it("answers every response with the headers a browser should see", async () => {
+    const res = await app.inject({ method: "GET", url: "/health" });
+    expect(res.headers["x-content-type-options"]).toBe("nosniff");
+    expect(res.headers["cache-control"]).toBe("no-store");
+  });
+});
+
 describe("the read side", () => {
   it("lists incidents with their runs, and a run with its events", async () => {
     const list = await app.inject({ method: "GET", url: "/incidents" });

@@ -1,3 +1,4 @@
+import rateLimit from "@fastify/rate-limit";
 import { loadSkills } from "@nightshift/skills";
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { randomUUID } from "node:crypto";
@@ -18,6 +19,8 @@ export interface AgentAppOptions {
   sandbox?: boolean;
   /** How pull requests are opened, or null when they are not. */
   pullRequests?: { label: string; autoMerge: boolean } | null;
+  /** Deliveries accepted per address per window on the webhooks; a tracker retries, a flood does not get far. */
+  rateLimit?: { max: number; windowMs: number };
   logger?: boolean;
 }
 
@@ -40,6 +43,9 @@ export async function buildAgentApp(options: AgentAppOptions): Promise<AgentApp>
   const { store } = options;
   const mode = options.mode ?? "dry-run";
   const app = Fastify({ logger: options.logger ?? false, bodyLimit: 1024 * 1024 });
+  const limit = options.rateLimit ?? { max: 60, windowMs: 60_000 };
+  await app.register(rateLimit, { global: false, max: limit.max, timeWindow: limit.windowMs });
+  const limited = { config: { rateLimit: { max: limit.max, timeWindow: limit.windowMs } } };
 
   // Keep the raw bytes: an HMAC over a re-serialised body is not the signature the sender computed.
   app.addContentTypeParser("application/json", { parseAs: "string" }, (request, body, done) => {
@@ -75,10 +81,12 @@ export async function buildAgentApp(options: AgentAppOptions): Promise<AgentApp>
     return reply.status(202).send({ incidentId: incident.id, runId, duplicate: false });
   }
 
-  app.post("/webhooks/sentry", (request, reply) => receive(request, reply, "sentry-hook-signature", options.secrets.sentry, parseSentry));
-  app.post("/webhooks/posthog", (request, reply) => receive(request, reply, "x-nightshift-signature", options.secrets.posthog, parsePostHog));
+  app.post("/webhooks/sentry", limited, (request, reply) => receive(request, reply, "sentry-hook-signature", options.secrets.sentry, parseSentry));
+  app.post("/webhooks/posthog", limited, (request, reply) => receive(request, reply, "x-nightshift-signature", options.secrets.posthog, parsePostHog));
 
   app.addHook("onSend", async (request, reply) => {
+    reply.header("x-content-type-options", "nosniff");
+    reply.header("cache-control", "no-store");
     if (request.method === "GET") reply.header("access-control-allow-origin", "*");
   });
 
