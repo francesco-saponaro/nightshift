@@ -6,6 +6,7 @@
 - Two more recorded incidents: `date-off-by-one` (reported by the sample's web client through PostHog's `$exception` shape, captured in a real browser) and `double-submit` (from the reporter, Sentry's shape). Every fixture now carries `pr.md`.
 - The sample's web client checks the server's day count against the calendar and hands a disagreement to the error tracker's browser SDK when one is loaded. The symptom tests that called the buggy functions directly moved behind the app, so they still compile once a fix removes the branch and its argument.
 - The read API answers any origin on GET, serves the skills at `/skills`, and `/health` says how pull requests are opened.
+- The dashboard (`apps/dashboard`, Vite + React + TanStack Router and Query + Tailwind): the incidents list with each run as a strip of its steps, where the night's time went and the branches left behind; one incident from the error to the pull request body, with the agent's transcript, the verification table and both verdicts; the skills as the agent reads them, with what the runner checks on each; the settings with every integration and every variable. `VITE_DEMO=1` builds it against the three recorded runs, which is what the published demo is.
 
 ## 2026-11-15 — first evening
 

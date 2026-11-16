@@ -6,6 +6,6 @@
   "description": "An on-call engineer that never sleeps: an error arrives from the error tracker, a reproduction is written, a coding agent fixes it in its own checkout, the fix is verified and reviewed, and a pull request opens.",
   "install": "pnpm install --frozen-lockfile",
   "test": "pnpm test",
-  "build": "pnpm -r build",
-  "dist": "dist"
+  "build": "VITE_DEMO=1 pnpm -r build",
+  "dist": "apps/dashboard/dist"
 }

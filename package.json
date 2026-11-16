@@ -15,7 +15,9 @@
     "test:watch": "vitest",
     "test:e2e": "pnpm -C apps/sample test:e2e",
     "typecheck": "pnpm -r typecheck",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build:demo": "VITE_DEMO=1 pnpm -r build",
+    "dev:dashboard": "pnpm -C apps/dashboard dev"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
